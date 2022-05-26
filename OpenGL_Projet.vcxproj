@@ -167,6 +167,7 @@
     <Image Include="glass-textures.png" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="DragonData.h" />
     <ClInclude Include="tiny_obj_loader.h" />
   </ItemGroup>

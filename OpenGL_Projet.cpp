@@ -11,6 +11,7 @@
 #include "../common/GLShader.h"
 #include "DragonData.h"
 #include "tiny_obj_loader.h"
+#include "Camera.h"
 
 GLShader g_BasicShader;
 
@@ -28,6 +29,8 @@ std::string inputfile = "Deer.obj";
 tinyobj::ObjReaderConfig reader_config = tinyobj::ObjReaderConfig(); // Path to material files
 
 tinyobj::ObjReader reader;
+
+Camera camera((glm::vec3)(0.0f, 0.0f, 3.0f));
 
 struct Color
 {
