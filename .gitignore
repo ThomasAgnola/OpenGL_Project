@@ -46,11 +46,6 @@ local.properties
 
 # Build results
 [Dd]ebug/
-[Rr]elease/
-<<<<<<< HEAD
->>>>>>> 92536e8 (Files)
-=======
->>>>>>> parent of 7e1a67d (updated repo to be built ( added glew lib ))
 *_i.c
 *_p.c
 *.ilk
