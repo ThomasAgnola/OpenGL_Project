@@ -5,13 +5,14 @@ GLShader g_BasicShader;
 GLuint VBO;
 GLuint IBO;
 GLuint VAO;
+GLuint texture0;
 
 Vertex vertices[] =
 {
     //Position                      //Color                         //TexCoords
-    glm::vec3(-0.5f, 0.5f, 0.f),    255, 0, 0, 255,                 glm::vec2(0.f, 1.f),
+    glm::vec3(-0.5f, 0.5f, 0.f),    255, 0, 0, 255,                 glm::vec2(1.f, 0.f),
     glm::vec3(-0.5f, -0.5f, 0.f),   0, 255, 0, 255,                 glm::vec2(0.f, 0.f),
-    glm::vec3(0.5f, -0.5f, 0.f),    0, 0, 255, 255,                 glm::vec2(1.f, 0.f),
+    glm::vec3(0.5f, -0.5f, 0.f),    0, 0, 255, 255,                 glm::vec2(0.f, 1.f),
     glm::vec3(0.5f, 0.5f, 0.f),     255, 255, 0, 255,               glm::vec2(0.f, 0.f),
 };
 unsigned nbrOfVertices = sizeof(vertices) / sizeof(Vertex);
@@ -106,11 +107,40 @@ void Initialize()
     glEnableVertexAttribArray(color_location);
     glVertexAttribPointer(color_location, 4, GL_UNSIGNED_BYTE, /*normalisation entre [0;1]*/true, stride, reinterpret_cast<void*>(offsetof(Vertex, color)));
 
+    int loc_texcoords = glGetAttribLocation(program, "a_texcoords");
+    glEnableVertexAttribArray(loc_texcoords);
+    glVertexAttribPointer(loc_texcoords, 2, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, texcoords));
+
     //reinit tout a commencer en premier par le VAO
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+    // Texture init
+    glGenTextures(1, &texture0);
+    glBindTexture(GL_TEXTURE_2D, texture0);
+
+    // Load image
+    int image_width = 0;
+    int image_height = 0;
+    unsigned char* image = stbi_load("Sunflower_from_Silesia2.jpg", &image_width, &image_height, nullptr, STBI_rgb_alpha);
+
+    if (image)
+    {   
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        stbi_image_free(image);
+    }
+    else
+    {
+        std::cout << "Error texture load failed" << "\n";
+    }
+
+    glActiveTexture(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Terminate()
@@ -144,15 +174,23 @@ void Render(GLFWwindow* window)
     int loc_time = glGetUniformLocation(basicProgram, "u_Time");
     glUniform1f(loc_time, time);
 
+    int locationTexture = glGetUniformLocation(basicProgram, "u_sampler");
+    glUniform1i(locationTexture, 0);
+
+    // Activating Texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture0);
+
+    // Bind VAO
     glBindVertexArray(VAO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-    //glDrawArrays(GL_TRIANGLES, 0, nbrOfVertices);
     glDrawElements(GL_TRIANGLES, nbrOfIndices, GL_UNSIGNED_INT, 0);
 
-    // si je n'ai plus besoin de(s) VBOs, je peux revenir ) l'etat initial
-    // CAD, que les adresses seront maintenant absolues (en RAM) et pas relative au VBO
+    // fin du render, retour a l'etat initial
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glActiveTexture(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 int main(void)

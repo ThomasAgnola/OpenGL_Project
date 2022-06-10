@@ -6,7 +6,7 @@
 
 in vec3 a_position;
 in vec4 a_color;
-in vec2 a_texcoord;
+in vec2 a_texcoords;
 
 out vec4 v_color;
 out vec3 v_position;
@@ -18,7 +18,7 @@ void main(void)
 {	
 	v_color = a_color;
 	v_position = a_position;
-	v_texcoord = a_texcoord;
+	v_texcoord = a_texcoords;
 
 	gl_Position = vec4(a_position, 1.0);
 }

@@ -1,11 +1,13 @@
 #pragma once
 #define GLEW_STATIC // necessite glew32s.lib
+#define STB_IMAGE_IMPLEMENTATION
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <cmath>
 #include <iostream>
 #include <GL/wglew.h>
+#include <stb_image.h>
 
 #include <glm.hpp>
 #include <vec2.hpp>

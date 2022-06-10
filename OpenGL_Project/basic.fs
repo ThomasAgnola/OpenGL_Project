@@ -8,16 +8,28 @@
 out vec4 o_FragColor;
 
 in vec4 v_color;
+in vec2 v_texcoord;
 
 uniform float u_Time;
+uniform sampler2D u_sampler;
 
 void main(void) 
 {
 	float g = mod(sin(u_Time), 1.0);
 
+	vec4 texcolor = texture2D(u_sampler, v_texcoord);
+
 	vec4 color = v_color;
+
 	color.g = g;
 
-	o_FragColor = color;
+	//gl_FragColor = texcolor;
+	//gl_FragColor = color;
+
+	// melange = blend
+	// additif => +
+	// modulation => *
+	
+	gl_FragColor = texcolor * color;
 
 }
