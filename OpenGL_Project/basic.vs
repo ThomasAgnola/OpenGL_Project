@@ -6,16 +6,19 @@
 
 in vec3 a_position;
 in vec4 a_color;
+in vec2 a_texcoord;
 
 out vec4 v_color;
+out vec3 v_position;
+out vec2 v_texcoord;
 
 uniform float u_Time;
 
 void main(void) 
 {	
 	v_color = a_color;
-
-	vec2 offset = vec2(sin(u_Time), 0.0);
+	v_position = a_position;
+	v_texcoord = a_texcoord;
 
 	gl_Position = vec4(a_position, 1.0);
 }

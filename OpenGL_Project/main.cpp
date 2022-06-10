@@ -9,15 +9,17 @@ GLuint VAO;
 Vertex vertices[] =
 {
     //Position                      //Color                         //TexCoords
-    glm::vec3(0.0f, 0.5f, 0.f),     255, 0, 0, 255,                 glm::vec2(0.f, 1.f),
+    glm::vec3(-0.5f, 0.5f, 0.f),    255, 0, 0, 255,                 glm::vec2(0.f, 1.f),
     glm::vec3(-0.5f, -0.5f, 0.f),   0, 255, 0, 255,                 glm::vec2(0.f, 0.f),
-    glm::vec3(0.5f, -0.5f, 0.f),    0, 0, 255, 255,                 glm::vec2(1.f, 0.f)
+    glm::vec3(0.5f, -0.5f, 0.f),    0, 0, 255, 255,                 glm::vec2(1.f, 0.f),
+    glm::vec3(0.5f, 0.5f, 0.f),     255, 255, 0, 255,               glm::vec2(0.f, 0.f),
 };
 unsigned nbrOfVertices = sizeof(vertices) / sizeof(Vertex);
 
 GLuint indices[] =
 {
-    0, 1, 2
+    0, 1, 2, // Triangle 1
+    0, 2, 3 // Triangle 2
 };
 unsigned nbrOfIndices = sizeof(indices) / sizeof(GLuint);
 
@@ -144,6 +146,7 @@ void Render(GLFWwindow* window)
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+    //glDrawArrays(GL_TRIANGLES, 0, nbrOfVertices);
     glDrawElements(GL_TRIANGLES, nbrOfIndices, GL_UNSIGNED_INT, 0);
 
     // si je n'ai plus besoin de(s) VBOs, je peux revenir ) l'etat initial
