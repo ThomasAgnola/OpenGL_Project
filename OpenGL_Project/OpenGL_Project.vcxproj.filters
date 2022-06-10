@@ -26,5 +26,16 @@
     <ClInclude Include="libs.h">
       <Filter>Fichiers de ressources</Filter>
     </ClInclude>
+    <ClInclude Include="..\libs\common\GLShader.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="basic.fs">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </None>
+    <None Include="basic.vs">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </None>
   </ItemGroup>
 </Project>

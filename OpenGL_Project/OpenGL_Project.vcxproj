@@ -134,7 +134,12 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\libs\common\GLShader.h" />
     <ClInclude Include="libs.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="basic.fs" />
+    <None Include="basic.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
