@@ -1,13 +1,36 @@
 #include "libs.h"
 #include "GLShader.h"
+#include "Texture.h"
 
 GLShader g_BasicShader;
+Texture texture0;
+Texture texture1;
+
 GLuint VBO;
 GLuint IBO;
 GLuint VAO;
-GLuint texture0;
-GLuint texture1;
+
 glm::mat4 ModelMatrix(1.f);
+glm::mat4 ViewMatrix(1.f);
+
+// Camera start Position
+glm::vec3 worldUp(0.f, 1.f, 0.f);
+glm::vec3 cameraFront(0.f, 0.f, -1.f);
+glm::vec3 cameraPosition(0.f, 0.f, 1.f);
+
+// Set Camera parameters
+float fov = 90.f;
+float nearPlane = 0.1f;
+float farPlane = 100.f;
+glm::mat4 ProjectionMatrix(1.f);
+
+// Get Window size ( to recalculate every resize )
+int framebufferWidth = 0, framebufferHeight = 0;
+
+// defintion de variable pour la position/rotation/scale de l'object
+glm::vec3 objectPosition(0.f);
+glm::vec3 objectRotation(0.f);
+glm::vec3 objectScale(1.f);
 
 Vertex vertices[] =
 {
@@ -31,6 +54,42 @@ void updateinput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+}
+
+void updateObject(GLFWwindow* window, glm::vec3& position, glm::vec3& rotation, glm::vec3& scale)
+{
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        position.z -= 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        position.x -= 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        position.z += 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        position.x += 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    {
+        rotation.y -= 1.f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    {
+        rotation.y += 1.f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+    {
+        scale += 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+    {
+        scale -= 0.01f;
     }
 }
 
@@ -118,71 +177,41 @@ void Initialize()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    // Texture init
-    glGenTextures(1, &texture0);
-    glBindTexture(GL_TEXTURE_2D, texture0);
-
+    // Texture init done globally -> to be usable in the render
     // Texture 0 // Load image
-    int image_width = 0;
-    int image_height = 0;
-    unsigned char* image = stbi_load("Sunflower_from_Silesia2.jpg", &image_width, &image_height, nullptr, STBI_rgb_alpha);
-
-    if (image)
-    {   
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        stbi_image_free(image);
-    }
-    else
-    {
-        std::cout << "Error texture load failed" << "\n";
-    }
-
-    glActiveTexture(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    // Texture init 1
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
+    texture0.loadImage("Sunflower_from_Silesia2.jpg", GL_TEXTURE_2D, 0);
 
     // Texture 1 // Load image
-    int image_width1 = 0;
-    int image_height1 = 0;
-    unsigned char* image1 = stbi_load("Minions.jpg", &image_width1, &image_height1, nullptr, STBI_rgb_alpha);
-
-    if (image1)
-    {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image_width1, image_height1, 0, GL_RGBA, GL_UNSIGNED_BYTE, image1);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        stbi_image_free(image1);
-    }
-    else
-    {
-        std::cout << "Error texture load failed" << "\n";
-    }
-
-    glActiveTexture(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    texture1.loadImage("Minions.jpg", GL_TEXTURE_2D, 1);
 
     //Matrice modèle / mouvement / rotation etc..
     //multiplication des matrices de droite à gauche avec OpenGL /!\ //
     //glm::mat4 ModelMatrix(1.f); //Matrice identitée de 4x4
-    ModelMatrix = glm::translate(ModelMatrix,glm::vec3(0.f, 0.f, 0.f)); //matrice identité mais avec des valeurs dans la dernière colonne // on multiplie la matrice de coordonnée avec la matrice de translation et les valeurs s'additionnent
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(0.f), glm::vec3(1.f, 0.f, 0.f));
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(0.f), glm::vec3(0.f, 1.f, 0.f));
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(0.f), glm::vec3(0.f, 0.f, 1.f));
-    ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1.f));
+    ModelMatrix = glm::translate(ModelMatrix, objectPosition); //matrice identité mais avec des valeurs dans la dernière colonne // on multiplie la matrice de coordonnée avec la matrice de translation et les valeurs s'additionnent
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.x), glm::vec3(1.f, 0.f, 0.f));
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.y), glm::vec3(0.f, 1.f, 0.f));
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.z), glm::vec3(0.f, 0.f, 1.f));
+    ModelMatrix = glm::scale(ModelMatrix, objectScale);
+    
+    // Init Position of Camera 
+    ViewMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraFront, worldUp);
+
+    // Setting Perspective
+    ProjectionMatrix = glm::perspective(
+        glm::radians(fov),
+        static_cast<float>(framebufferWidth) / framebufferHeight,
+        nearPlane,
+        farPlane
+    );
 
     glUseProgram(program);
 
     //envoi de la matrice au shader 
     glUniformMatrix4fv(glGetUniformLocation(program, "ModelMatrix"), 1, GL_FALSE, glm::value_ptr(ModelMatrix));
+    //envoi de la Vue au shader
+    glUniformMatrix4fv(glGetUniformLocation(program, "ViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
+    //envoi de la Projection au shader
+    glUniformMatrix4fv(glGetUniformLocation(program, "ProjectionMatrix"), 1, GL_FALSE, glm::value_ptr(ProjectionMatrix));
 
     glUseProgram(0);
 
@@ -226,21 +255,35 @@ void Render(GLFWwindow* window)
     glUniform1i(locationTexture1, 1);
 
     //Mouvement Rotation Scale
-    ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0.f, 0.f, 0.f)); //matrice identité mais avec des valeurs dans la dernière colonne // on multiplie la matrice de coordonnée avec la matrice de translation et les valeurs s'additionnent
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(0.02f), glm::vec3(1.f, 0.f, 0.f));
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(0.02f), glm::vec3(0.f, 1.f, 0.f));
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(0.02f), glm::vec3(0.f, 0.f, 1.f));
-    ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1.000001f));
+    /*objectPosition.z -= 0.001f;
+    objectRotation.y += 1.f;
+    objectScale += 0.001f;*/
+
+    ModelMatrix = glm::mat4(1.f);
+    ModelMatrix = glm::translate(ModelMatrix, objectPosition); //matrice identité mais avec des valeurs dans la dernière colonne // on multiplie la matrice de coordonnée avec la matrice de translation et les valeurs s'additionnent
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.x), glm::vec3(1.f, 0.f, 0.f));
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.y), glm::vec3(0.f, 1.f, 0.f));
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.z), glm::vec3(0.f, 0.f, 1.f));
+    ModelMatrix = glm::scale(ModelMatrix, objectScale);
 
     glUniformMatrix4fv(glGetUniformLocation(basicProgram, "ModelMatrix"), 1, GL_FALSE, glm::value_ptr(ModelMatrix));
 
+    glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+    // Updating Perspective
+    ProjectionMatrix = glm::mat4(1.f);
+    ProjectionMatrix = glm::perspective(
+        glm::radians(fov),
+        static_cast<float>(framebufferWidth) / framebufferHeight,
+        nearPlane,
+        farPlane
+    );
+    glUniformMatrix4fv(glGetUniformLocation(basicProgram, "ProjectionMatrix"), 1, GL_FALSE, glm::value_ptr(ProjectionMatrix));
+
 
     // Activating Texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture0);
+    texture0.bind();
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
+    texture1.bind();
 
     // Bind VAO
     glBindVertexArray(VAO);
@@ -262,7 +305,6 @@ int main(void)
     // Création de la fênetre
     const int Win_width = 640;
     const int Win_height = 480;
-    int framebufferWidth = 0, framebufferHeight = 0;
 
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -271,8 +313,8 @@ int main(void)
 
     GLFWwindow* window = glfwCreateWindow(Win_width, Win_height, "OpenGL Project", NULL, NULL);
 
+    glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
     glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
-    //glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
     //glViewport(0, 0, framebufferWidth, framebufferHeight);
 
     glfwMakeContextCurrent(window);
@@ -287,6 +329,7 @@ int main(void)
     {
         // maj input
         glfwPollEvents();
+        updateObject(window, objectPosition, objectRotation, objectScale);
 
         // update
         updateinput(window);
