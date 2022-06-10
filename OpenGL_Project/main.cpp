@@ -6,14 +6,16 @@ GLuint VBO;
 GLuint IBO;
 GLuint VAO;
 GLuint texture0;
+GLuint texture1;
+glm::mat4 ModelMatrix(1.f);
 
 Vertex vertices[] =
 {
     //Position                      //Color                         //TexCoords
-    glm::vec3(-0.5f, 0.5f, 0.f),    255, 0, 0, 255,                 glm::vec2(1.f, 0.f),
-    glm::vec3(-0.5f, -0.5f, 0.f),   0, 255, 0, 255,                 glm::vec2(0.f, 0.f),
-    glm::vec3(0.5f, -0.5f, 0.f),    0, 0, 255, 255,                 glm::vec2(0.f, 1.f),
-    glm::vec3(0.5f, 0.5f, 0.f),     255, 255, 0, 255,               glm::vec2(0.f, 0.f),
+    glm::vec3(-0.5f, 0.5f, 0.f),    255, 0, 0, 255,                 glm::vec2(0.f, 0.f),
+    glm::vec3(-0.5f, -0.5f, 0.f),   0, 255, 0, 255,                 glm::vec2(0.f, 1.f),
+    glm::vec3(0.5f, -0.5f, 0.f),    0, 0, 255, 255,                 glm::vec2(1.f, 1.f),
+    glm::vec3(0.5f, 0.5f, 0.f),     255, 255, 0, 255,               glm::vec2(1.f, 0.f),
 };
 unsigned nbrOfVertices = sizeof(vertices) / sizeof(Vertex);
 
@@ -120,7 +122,7 @@ void Initialize()
     glGenTextures(1, &texture0);
     glBindTexture(GL_TEXTURE_2D, texture0);
 
-    // Load image
+    // Texture 0 // Load image
     int image_width = 0;
     int image_height = 0;
     unsigned char* image = stbi_load("Sunflower_from_Silesia2.jpg", &image_width, &image_height, nullptr, STBI_rgb_alpha);
@@ -141,6 +143,49 @@ void Initialize()
 
     glActiveTexture(0);
     glBindTexture(GL_TEXTURE_2D, 0);
+
+    // Texture init 1
+    glGenTextures(1, &texture1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+
+    // Texture 1 // Load image
+    int image_width1 = 0;
+    int image_height1 = 0;
+    unsigned char* image1 = stbi_load("Minions.jpg", &image_width1, &image_height1, nullptr, STBI_rgb_alpha);
+
+    if (image1)
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image_width1, image_height1, 0, GL_RGBA, GL_UNSIGNED_BYTE, image1);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        stbi_image_free(image1);
+    }
+    else
+    {
+        std::cout << "Error texture load failed" << "\n";
+    }
+
+    glActiveTexture(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    //Matrice modèle / mouvement / rotation etc..
+    //multiplication des matrices de droite à gauche avec OpenGL /!\ //
+    //glm::mat4 ModelMatrix(1.f); //Matrice identitée de 4x4
+    ModelMatrix = glm::translate(ModelMatrix,glm::vec3(0.f, 0.f, 0.f)); //matrice identité mais avec des valeurs dans la dernière colonne // on multiplie la matrice de coordonnée avec la matrice de translation et les valeurs s'additionnent
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(0.f), glm::vec3(1.f, 0.f, 0.f));
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(0.f), glm::vec3(0.f, 1.f, 0.f));
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(0.f), glm::vec3(0.f, 0.f, 1.f));
+    ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1.f));
+
+    glUseProgram(program);
+
+    //envoi de la matrice au shader 
+    glUniformMatrix4fv(glGetUniformLocation(program, "ModelMatrix"), 1, GL_FALSE, glm::value_ptr(ModelMatrix));
+
+    glUseProgram(0);
+
 }
 
 void Terminate()
@@ -177,9 +222,25 @@ void Render(GLFWwindow* window)
     int locationTexture = glGetUniformLocation(basicProgram, "u_sampler");
     glUniform1i(locationTexture, 0);
 
+    int locationTexture1 = glGetUniformLocation(basicProgram, "u_sampler1");
+    glUniform1i(locationTexture1, 1);
+
+    //Mouvement Rotation Scale
+    ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0.f, 0.f, 0.f)); //matrice identité mais avec des valeurs dans la dernière colonne // on multiplie la matrice de coordonnée avec la matrice de translation et les valeurs s'additionnent
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(0.02f), glm::vec3(1.f, 0.f, 0.f));
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(0.02f), glm::vec3(0.f, 1.f, 0.f));
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(0.02f), glm::vec3(0.f, 0.f, 1.f));
+    ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1.000001f));
+
+    glUniformMatrix4fv(glGetUniformLocation(basicProgram, "ModelMatrix"), 1, GL_FALSE, glm::value_ptr(ModelMatrix));
+
+
     // Activating Texture
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture0);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
 
     // Bind VAO
     glBindVertexArray(VAO);

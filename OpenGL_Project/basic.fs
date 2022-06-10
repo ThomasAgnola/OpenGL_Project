@@ -12,12 +12,14 @@ in vec2 v_texcoord;
 
 uniform float u_Time;
 uniform sampler2D u_sampler;
+uniform sampler2D u_sampler1; //afficher la deuxième imahe avec texture
 
 void main(void) 
 {
 	float g = mod(sin(u_Time), 1.0);
 
 	vec4 texcolor = texture2D(u_sampler, v_texcoord);
+	vec4 texcolor1 = texture2D(u_sampler1, v_texcoord);
 
 	vec4 color = v_color;
 
@@ -30,6 +32,6 @@ void main(void)
 	// additif => +
 	// modulation => *
 	
-	gl_FragColor = texcolor * color;
+	gl_FragColor = texcolor * texcolor1 * color;
 
 }

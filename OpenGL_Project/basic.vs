@@ -14,11 +14,13 @@ out vec2 v_texcoord;
 
 uniform float u_Time;
 
+uniform mat4 ModelMatrix;
+
 void main(void) 
 {	
 	v_color = a_color;
-	v_position = a_position;
+	v_position = vec4(ModelMatrix * vec4(a_position, 1.f)).xyz;
 	v_texcoord = a_texcoords;
 
-	gl_Position = vec4(a_position, 1.0);
+	gl_Position = vec4(ModelMatrix * vec4(a_position, 1.f));
 }
