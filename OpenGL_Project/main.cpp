@@ -37,14 +37,15 @@ glm::vec3 objectPosition(0.f);
 glm::vec3 objectRotation(0.f);
 glm::vec3 objectScale(1.f);
 
-void updateinput(GLFWwindow* window)
+/*void updateinput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 }
-
+*/
+/*
 void updateObject(GLFWwindow* window, Mesh& mesh)
 {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -80,12 +81,28 @@ void updateObject(GLFWwindow* window, Mesh& mesh)
         mesh.scale(glm::vec3(-0.01f));
     }
 }
+*/
 
+//getter 
+int getWindowShouldClose(GLFWwindow* window)
+{
+    return glfwWindowShouldClose(window);
+}
+
+//setter
+void setWindowShouldClose(GLFWwindow* window)
+{
+    glfwSetWindowShouldClose(window, GLFW_TRUE);
+}
 void framebuffer_resize_callback(GLFWwindow* windows, int fbW, int fbH)
 {
     glViewport(0, 0, fbW, fbH);
 }
 
+void updateInput() 
+{
+
+}
 void Initialize()
 {
     GLenum error = glewInit();
@@ -280,10 +297,10 @@ int main(void)
     {
         // maj input
         glfwPollEvents();
-        updateObject(window, mesh);
+        //updateObject(window, mesh);
 
         // update
-        updateinput(window);
+        //updateinput(window);
 
         // maj fenetre
         // clear
