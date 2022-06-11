@@ -21,12 +21,41 @@ in vec3 v_position;
 in vec3 v_normal;
 in vec2 v_texcoords;
 
+// Uniforms
+
 uniform Material material;
 
 uniform float u_Time;
 
 uniform vec3 lightPos;
 uniform vec3 cameraPos;
+
+// Fonctions
+
+vec3 calculateAmbient(Material material)
+{
+	return material.ambient;
+}
+
+vec3 calculateDiffuse(Material material, vec3 v_position, vec3 v_normal, vec3 lightPos)
+{
+	vec3 posToLightDirVec = normalize(v_position - lightPos);
+	float diffuse = clamp(dot(posToLightDirVec, v_normal), 0, 1);
+	vec3 diffuseFinal = material.diffuse * diffuse;
+
+	return diffuseFinal;
+}
+
+vec3 calulcateSpecular(Material material, vec3 v_position, vec3 v_normal, vec3 lightPos, vec3 cameraPos)
+{
+	vec3 lightToPosDirVec = normalize(lightPos - v_position);
+	vec3 reflectDirVec = normalize(reflect(lightToPosDirVec, normalize(v_normal)));
+	vec3 posToViewDirVec = normalize(v_position - cameraPos);
+	float specularConstant = pow(max(dot(posToViewDirVec, reflectDirVec), 0), 35);
+	vec3 specularFinal = material.specular * specularConstant;
+
+	return specularFinal;
+}
 
 void main(void) 
 {
@@ -36,25 +65,18 @@ void main(void)
 	vec4 texcolor1 = texture2D(material.specularTexture, v_texcoords);
 
 	// ambient light
-	vec3 ambientLight = material.ambient;
+	vec3 ambientFinal = calculateAmbient(material);
 
 	// diffuse light
-	vec3 posToLightDirVec = normalize(v_position - lightPos);
-	vec3 diffuseColor = vec3(1.f, 1.f, 1.f);
-	float diffuse = clamp(dot(posToLightDirVec, v_normal), 0, 1);
-	vec3 diffuseFinal = material.diffuse * diffuse;
+	vec3 diffuseFinal = calculateDiffuse(material, v_position, v_normal, lightPos);
 
 	//specular light
-	vec3 lightToPosDirVec = normalize(lightPos - v_position);
-	vec3 reflectDirVec = normalize(reflect(lightToPosDirVec, normalize(v_normal)));
-	vec3 posToViewDirVec = normalize(v_position - cameraPos);
-	float specularConstant = pow(max(dot(posToViewDirVec, reflectDirVec), 0), 35);
-	vec3 specularFinal = material.specular * specularConstant;
+	vec3 specularFinal = calulcateSpecular(material, v_position, v_normal, lightPos, cameraPos);
 
 	// calulcate final shader
 	gl_FragColor = 
 	texcolor
 	* texcolor1
-	* (vec4(ambientLight, 1.f) + vec4(diffuseFinal, 1.f) + vec4(specularFinal, 1.f));
+	* (vec4(ambientFinal, 1.f) + vec4(diffuseFinal, 1.f) + vec4(specularFinal, 1.f));
 
 }
