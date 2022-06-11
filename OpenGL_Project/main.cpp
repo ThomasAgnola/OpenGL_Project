@@ -83,26 +83,46 @@ void updateObject(GLFWwindow* window, Mesh& mesh)
 }
 */
 
-//getter 
-int getWindowShouldClose(GLFWwindow* window)
-{
-    return glfwWindowShouldClose(window);
-}
-
-//setter
-void setWindowShouldClose(GLFWwindow* window)
-{
-    glfwSetWindowShouldClose(window, GLFW_TRUE);
-}
 void framebuffer_resize_callback(GLFWwindow* windows, int fbW, int fbH)
 {
     glViewport(0, 0, fbW, fbH);
 }
 
-void updateInput() 
+void updateInput(GLFWwindow* window)
 {
+    // Program
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
 
+    // Cameras
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        cameraPosition.z += 0.05f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        cameraPosition.z -= 0.05f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        cameraPosition.x -= 0.05f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        cameraPosition.x += 0.05f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+    {
+        cameraPosition.y -= 0.05f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        cameraPosition.y += 0.05f;
+    }
 }
+
 void Initialize()
 {
     GLenum error = glewInit();
@@ -234,6 +254,12 @@ void Render(GLFWwindow* window)
     int loc_time = glGetUniformLocation(basicProgram, "u_Time");
     glUniform1f(loc_time, time);
 
+    //Update view matrix
+    ViewMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraFront, worldUp);
+    //envoi de la nouvelle Vue au shader
+    glUniformMatrix4fv(glGetUniformLocation(basicProgram, "ViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
+
+
     // update frameBufferSize
     glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
 
@@ -300,7 +326,7 @@ int main(void)
         //updateObject(window, mesh);
 
         // update
-        //updateinput(window);
+        updateInput(window);
 
         // maj fenetre
         // clear
