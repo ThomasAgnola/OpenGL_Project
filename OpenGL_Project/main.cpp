@@ -1,6 +1,28 @@
 #include "libs.h"
 #include "GLShader.h"
 
+//Window variables
+GLFWwindow* window;
+// Delta time
+float dt = 0.f;
+float curTime = 0.f;
+float lastTime = 0.f;
+//Mouse Input
+double lastMouseX = 0.0;
+double lastMouseY = 0.0;
+double mouseX = 0.0;
+double mouseY = 0.0;
+double mouseOffsetX = 0.0;
+double mouseOffsetY = 0.0;
+bool firstMouse = true;
+// Get Window size ( to recalculate every resize )
+int framebufferWidth = 0, framebufferHeight = 0;
+
+
+// Camera
+Camera camera;
+
+// Shader
 GLShader g_BasicShader;
 // Texture
 Texture texture0;
@@ -29,66 +51,45 @@ float nearPlane = 0.1f;
 float farPlane = 100.f;
 glm::mat4 ProjectionMatrix(1.f);
 
-// Get Window size ( to recalculate every resize )
-int framebufferWidth = 0, framebufferHeight = 0;
 
 // defintion de variable pour la position/rotation/scale de l'object
 glm::vec3 objectPosition(0.f);
 glm::vec3 objectRotation(0.f);
 glm::vec3 objectScale(1.f);
 
-/*void updateinput(GLFWwindow* window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
-}
-*/
-/*
-void updateObject(GLFWwindow* window, Mesh& mesh)
-{
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    {
-        mesh.move(glm::vec3(0.f, 0.f, -0.01f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    {
-        mesh.move(glm::vec3(-0.01f, 0.f, 0.f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    {
-        mesh.move(glm::vec3(0.f, 0.f, 0.01f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    {
-        mesh.move(glm::vec3(0.01f, 0.f, 0.f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-    {
-        mesh.rotate(glm::vec3(0.f, -1.f, 0.f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-    {
-        mesh.rotate(glm::vec3(0.f, 1.f, 0.f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
-    {
-        mesh.scale(glm::vec3(0.01f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
-    {
-        mesh.scale(glm::vec3(-0.01f));
-    }
-}
-*/
-
 void framebuffer_resize_callback(GLFWwindow* windows, int fbW, int fbH)
 {
     glViewport(0, 0, fbW, fbH);
 }
 
-void updateInput(GLFWwindow* window)
+void updateDT()
+{
+    curTime = static_cast<float>(glfwGetTime());
+    dt = curTime - lastTime;
+    lastTime = curTime;
+}
+
+void updateMouseInput()
+{
+    glfwGetCursorPos(window, &mouseX, &mouseY);
+
+    if (firstMouse)
+    {
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+        firstMouse = false;
+    }
+
+    // Calculate offsets
+    mouseOffsetX = mouseX - lastMouseX;
+    mouseOffsetY = mouseY - lastMouseY;
+
+    // set last x et y 
+    lastMouseX = mouseX;
+    lastMouseY = mouseY;
+}
+
+void updateKeyboardInput()
 {
     // Program
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -99,19 +100,19 @@ void updateInput(GLFWwindow* window)
     // Cameras
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        cameraPosition.z += 0.05f;
+        camera.move(dt, Forward);
     }
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        cameraPosition.z -= 0.05f;
+        camera.move(dt, Backward);
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
-        cameraPosition.x -= 0.05f;
+        camera.move(dt, Left);
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
-        cameraPosition.x += 0.05f;
+        camera.move(dt, Right);
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
     {
@@ -143,6 +144,9 @@ void Initialize()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    //Input
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // Vertex
     g_BasicShader.LoadVertexShader("basic.vs");
@@ -216,8 +220,6 @@ void Initialize()
 
     //envoi de lumiere
     glUniform3fv(glGetUniformLocation(program, "lightPos"), 1, glm::value_ptr(lightPos0));
-    //envoi de la camera
-    glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, glm::value_ptr(cameraPosition));
 
     glUseProgram(0);
 
@@ -255,9 +257,11 @@ void Render(GLFWwindow* window)
     glUniform1f(loc_time, time);
 
     //Update view matrix
-    ViewMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraFront, worldUp);
+    ViewMatrix = camera.getViewMatrix();
     //envoi de la nouvelle Vue au shader
     glUniformMatrix4fv(glGetUniformLocation(basicProgram, "ViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
+    //envoi de la camera
+    glUniform3fv(glGetUniformLocation(basicProgram, "cameraPos"), 1, glm::value_ptr(camera.getPosition()));
 
 
     // update frameBufferSize
@@ -297,19 +301,20 @@ int main(void)
     glfwInit();
 
     // Création de la fênetre
-    const int Win_width = 640;
-    const int Win_height = 480;
+    const int Win_width = 1600;
+    const int Win_height = 900;
 
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(Win_width, Win_height, "OpenGL Project", NULL, NULL);
+    window = glfwCreateWindow(Win_width, Win_height, "OpenGL Project", NULL, NULL);
 
     glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
     glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
-    //glViewport(0, 0, framebufferWidth, framebufferHeight);
+ 
+    camera.initCamera(glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f));
 
     glfwMakeContextCurrent(window);
 
@@ -326,7 +331,15 @@ int main(void)
         //updateObject(window, mesh);
 
         // update
-        updateInput(window);
+        updateDT();
+        updateKeyboardInput();
+        updateMouseInput();
+        camera.updateInput(dt, -1, mouseOffsetX, mouseOffsetY);
+
+        mesh.rotate(glm::vec3(0.f, 0.1f, 0.f));
+
+        // Show mouse value in real time in console
+        //std::cout << "DT : " << dt << "\n" << " Mouse OffsetX : " << mouseOffsetX << " Mouse OffsetY : " << mouseOffsetY << "\n";
 
         // maj fenetre
         // clear

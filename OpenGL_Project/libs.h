@@ -22,4 +22,5 @@
 #include "Material.h"
 #include "Mesh.h"
 #include "Primitives.h"
+#include "Camera.h"
 
