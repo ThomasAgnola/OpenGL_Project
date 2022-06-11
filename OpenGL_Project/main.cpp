@@ -37,23 +37,6 @@ glm::vec3 objectPosition(0.f);
 glm::vec3 objectRotation(0.f);
 glm::vec3 objectScale(1.f);
 
-Vertex vertices[] =
-{
-    //Position                      //Color                         //TexCoords             //Normal
-    glm::vec3(-0.5f, 0.5f, 0.f),    255, 0, 0, 255,                 glm::vec2(0.f, 0.f),    glm::vec3(0.f, 0.f, 1.f),
-    glm::vec3(-0.5f, -0.5f, 0.f),   0, 255, 0, 255,                 glm::vec2(0.f, 1.f),    glm::vec3(0.f, 0.f, 1.f),
-    glm::vec3(0.5f, -0.5f, 0.f),    0, 0, 255, 255,                 glm::vec2(1.f, 1.f),    glm::vec3(0.f, 0.f, 1.f),
-    glm::vec3(0.5f, 0.5f, 0.f),     255, 255, 0, 255,               glm::vec2(1.f, 0.f),    glm::vec3(0.f, 0.f, 1.f)
-};
-unsigned nbrOfVertices = sizeof(vertices) / sizeof(Vertex);
-
-GLuint indices[] =
-{
-    0, 1, 2, // Triangle 1
-    0, 2, 3 // Triangle 2
-};
-unsigned nbrOfIndices = sizeof(indices) / sizeof(GLuint);
-
 void updateinput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -155,7 +138,12 @@ void Initialize()
     int normal_location = glGetAttribLocation(program, "a_normal");
 
     // Model
-    mesh.loadMesh(vertices, nbrOfVertices, indices, nbrOfIndices, 
+
+    //Can change figure by primitive
+    Triangle triangle = Triangle();
+
+    //Quad quad = Quad();
+    mesh.loadMesh(&triangle,
         location, color_location, loc_texcoords, normal_location, 
         glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f));
 

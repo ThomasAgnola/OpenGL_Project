@@ -2,6 +2,7 @@
 #include "libs.h"
 #include "GLShader.h"
 #include <vector>
+#include "Primitives.h"
 
 class Mesh
 {
@@ -18,7 +19,48 @@ private:
 	glm::vec3 Scale;
 	glm::mat4 ModelMatrix;
 
+	void initVAO(Primitive* primitive,
+		int position_location,
+		int color_location,
+		int tex_coord,
+		int normal_location)
+	{
+		//Set variables
+		this->nbrOfVertices = primitive->getNbrOfVertices();
+		this->nbrOfIndices = primitive->getNbrOfIndices();
 
+		// VAO, VBO, IBO
+		// GEN VAO and BIND
+		glGenVertexArrays(1, &this->VAO);
+		glBindVertexArray(this->VAO);
+
+		// GEN VBO and BIND/SEND DATA
+		glGenBuffers(1, &this->VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+		glBufferData(GL_ARRAY_BUFFER, this->nbrOfVertices * sizeof(Vertex), primitive->getVertices(), GL_STATIC_DRAW);
+
+		// GEN IBO and BIND/SEND DATA
+		glGenBuffers(1, &this->IBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->IBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->nbrOfIndices * sizeof(GLuint), primitive->getIndices(), GL_STATIC_DRAW);
+
+		const uint32_t stride = sizeof(Vertex);
+		glEnableVertexAttribArray(position_location);
+		glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, position));
+
+		glEnableVertexAttribArray(color_location);
+		glVertexAttribPointer(color_location, 4, GL_UNSIGNED_BYTE, /*normalisation entre [0;1]*/true, stride, reinterpret_cast<void*>(offsetof(Vertex, color)));
+
+		glEnableVertexAttribArray(tex_coord);
+		glVertexAttribPointer(tex_coord, 2, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, texcoords));
+
+		glEnableVertexAttribArray(normal_location);
+		glVertexAttribPointer(normal_location, 3, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, normal));
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
 
 	void initVAO(Vertex* vertexArray, 
 		const unsigned& nbrOfVertices, 
@@ -96,6 +138,16 @@ public:
 		this->updateModelMatrix();
 	}
 
+	Mesh(Primitive* primitive,
+		int position,
+		int color,
+		int tex_coords,
+		int normal)
+	{
+		this->initVAO(primitive, position, color, tex_coords, normal);
+		this->updateModelMatrix();
+	}
+
 	Mesh()
 	{
 
@@ -119,6 +171,24 @@ public:
 		this->Rotation = Rotation;
 		this->Scale = Scale;
 		this->initVAO(vertexArray, nbrOfVertices, indexArray, nbrOfindices, position, color, tex_coords, normal);
+		this->updateModelMatrix();
+	}
+
+	void loadMesh(
+		Primitive* primitive,
+		int position,
+		int color,
+		int tex_coords,
+		int normal,
+		glm::vec3 Position = glm::vec3(0.f),
+		glm::vec3 Rotation = glm::vec3(0.f),
+		glm::vec3 Scale = glm::vec3(1.f)
+		)
+	{
+		this->Position = Position;
+		this->Rotation = Rotation;
+		this->Scale = Scale;
+		this->initVAO(primitive->getVertices(), primitive->getNbrOfVertices(), primitive->getIndices(), primitive->getNbrOfIndices(), position, color, tex_coords, normal);
 		this->updateModelMatrix();
 	}
 
