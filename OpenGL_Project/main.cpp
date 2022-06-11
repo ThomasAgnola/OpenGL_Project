@@ -140,10 +140,10 @@ void Initialize()
     // Model
 
     //Can change figure by primitive
-    Triangle triangle = Triangle();
-
+    //Triangle triangle = Triangle();
+    Pyramid pyramid = Pyramid();
     //Quad quad = Quad();
-    mesh.loadMesh(&triangle,
+    mesh.loadMesh(&pyramid,
         location, color_location, loc_texcoords, normal_location, 
         glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f));
 

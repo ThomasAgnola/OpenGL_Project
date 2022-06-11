@@ -40,9 +40,12 @@ private:
 		glBufferData(GL_ARRAY_BUFFER, this->nbrOfVertices * sizeof(Vertex), primitive->getVertices(), GL_STATIC_DRAW);
 
 		// GEN IBO and BIND/SEND DATA
-		glGenBuffers(1, &this->IBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->IBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->nbrOfIndices * sizeof(GLuint), primitive->getIndices(), GL_STATIC_DRAW);
+		if (this->nbrOfIndices > 0)
+		{
+			glGenBuffers(1, &this->IBO);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->IBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->nbrOfIndices * sizeof(GLuint), primitive->getIndices(), GL_STATIC_DRAW);
+		}
 
 		const uint32_t stride = sizeof(Vertex);
 		glEnableVertexAttribArray(position_location);
@@ -86,9 +89,12 @@ private:
 		glBufferData(GL_ARRAY_BUFFER, this->nbrOfVertices * sizeof(Vertex), vertexArray, GL_STATIC_DRAW);
 
 		// GEN IBO and BIND/SEND DATA
-		glGenBuffers(1, &this->IBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->IBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->nbrOfIndices * sizeof(GLuint), indexArray, GL_STATIC_DRAW);
+		if (this->nbrOfIndices > 0)
+		{
+			glGenBuffers(1, &this->IBO);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->IBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->nbrOfIndices * sizeof(GLuint), indexArray, GL_STATIC_DRAW);
+		}
 
 		const uint32_t stride = sizeof(Vertex);
 		glEnableVertexAttribArray(position_location);
@@ -195,8 +201,11 @@ public:
 	~Mesh()
 	{
 		glDeleteBuffers(1, &this->VBO);
-		glDeleteBuffers(1, &this->IBO);
 		glDeleteVertexArrays(1, &this->VAO);
+		if (this->nbrOfIndices > 0)
+		{
+			glDeleteBuffers(1, &this->IBO);
+		}
 	}
 
 	// Accessors
@@ -256,7 +265,13 @@ public:
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->IBO);
 
 		// render
-		glDrawElements(GL_TRIANGLES, this->nbrOfIndices, GL_UNSIGNED_INT, 0);
-
+		if (this->nbrOfIndices == 0)
+		{
+			glDrawArrays(GL_TRIANGLES, 0, this->nbrOfVertices);
+		}
+		else
+		{
+			glDrawElements(GL_TRIANGLES, this->nbrOfIndices, GL_UNSIGNED_INT, 0);
+		}
 	}
 };
