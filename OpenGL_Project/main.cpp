@@ -1,10 +1,15 @@
 #include "libs.h"
 #include "GLShader.h"
 #include "Texture.h"
+#include "Material.h"
 
 GLShader g_BasicShader;
+// Texture
 Texture texture0;
 Texture texture1;
+//Material
+Material material0;
+Material material1;
 
 GLuint VBO;
 GLuint IBO;
@@ -34,11 +39,11 @@ glm::vec3 objectScale(1.f);
 
 Vertex vertices[] =
 {
-    //Position                      //Color                         //TexCoords
-    glm::vec3(-0.5f, 0.5f, 0.f),    255, 0, 0, 255,                 glm::vec2(0.f, 0.f),
-    glm::vec3(-0.5f, -0.5f, 0.f),   0, 255, 0, 255,                 glm::vec2(0.f, 1.f),
-    glm::vec3(0.5f, -0.5f, 0.f),    0, 0, 255, 255,                 glm::vec2(1.f, 1.f),
-    glm::vec3(0.5f, 0.5f, 0.f),     255, 255, 0, 255,               glm::vec2(1.f, 0.f),
+    //Position                      //Color                         //TexCoords             //Normal
+    glm::vec3(-0.5f, 0.5f, 0.f),    255, 0, 0, 255,                 glm::vec2(0.f, 0.f),    glm::vec3(0.f, 0.f, -1.f),
+    glm::vec3(-0.5f, -0.5f, 0.f),   0, 255, 0, 255,                 glm::vec2(0.f, 1.f),    glm::vec3(0.f, 0.f, -1.f),
+    glm::vec3(0.5f, -0.5f, 0.f),    0, 0, 255, 255,                 glm::vec2(1.f, 1.f),    glm::vec3(0.f, 0.f, -1.f),
+    glm::vec3(0.5f, 0.5f, 0.f),     0, 255, 0, 255,               glm::vec2(1.f, 0.f),    glm::vec3(0.f, 0.f, -1.f)
 };
 unsigned nbrOfVertices = sizeof(vertices) / sizeof(Vertex);
 
@@ -140,6 +145,9 @@ void Initialize()
     }
 
     // VAO, VBO, IBO
+    // GEN VAO and BIND
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
 
     // GEN VBO and BIND/SEND DATA
     glGenBuffers(1, &VBO);
@@ -150,13 +158,6 @@ void Initialize()
     glGenBuffers(1, &IBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    // GEN VAO and BIND
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
     const uint32_t stride = sizeof(Vertex);
 
@@ -172,6 +173,10 @@ void Initialize()
     glEnableVertexAttribArray(loc_texcoords);
     glVertexAttribPointer(loc_texcoords, 2, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, texcoords));
 
+    int normal_location = glGetAttribLocation(program, "a_normal");
+    glEnableVertexAttribArray(normal_location);
+    glVertexAttribPointer(normal_location, 3, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, normal));
+
     //reinit tout a commencer en premier par le VAO
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -184,9 +189,13 @@ void Initialize()
     // Texture 1 // Load image
     texture1.loadImage("Minions.jpg", GL_TEXTURE_2D, 1);
 
+    // Material 0
+    material0.loadMaterial(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(1.f), texture0.getTextureUnit(), texture1.getTextureUnit());
+
     //Matrice modèle / mouvement / rotation etc..
     //multiplication des matrices de droite à gauche avec OpenGL /!\ //
     //glm::mat4 ModelMatrix(1.f); //Matrice identitée de 4x4
+    ModelMatrix = glm::mat4(1.f);
     ModelMatrix = glm::translate(ModelMatrix, objectPosition); //matrice identité mais avec des valeurs dans la dernière colonne // on multiplie la matrice de coordonnée avec la matrice de translation et les valeurs s'additionnent
     ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.x), glm::vec3(1.f, 0.f, 0.f));
     ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.y), glm::vec3(0.f, 1.f, 0.f));
@@ -204,6 +213,8 @@ void Initialize()
         farPlane
     );
 
+    glm::vec3 lightPos0(0.f, 0.f, 1.f);
+
     glUseProgram(program);
 
     //envoi de la matrice au shader 
@@ -212,6 +223,11 @@ void Initialize()
     glUniformMatrix4fv(glGetUniformLocation(program, "ViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
     //envoi de la Projection au shader
     glUniformMatrix4fv(glGetUniformLocation(program, "ProjectionMatrix"), 1, GL_FALSE, glm::value_ptr(ProjectionMatrix));
+
+    //envoi de lumiere
+    glUniform3fv(glGetUniformLocation(program, "lightPos"), 1, glm::value_ptr(lightPos0));
+    //envoi de la camera
+    glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, glm::value_ptr(cameraPosition));
 
     glUseProgram(0);
 
@@ -248,17 +264,8 @@ void Render(GLFWwindow* window)
     int loc_time = glGetUniformLocation(basicProgram, "u_Time");
     glUniform1f(loc_time, time);
 
-    int locationTexture = glGetUniformLocation(basicProgram, "u_sampler");
-    glUniform1i(locationTexture, 0);
-
-    int locationTexture1 = glGetUniformLocation(basicProgram, "u_sampler1");
-    glUniform1i(locationTexture1, 1);
 
     //Mouvement Rotation Scale
-    /*objectPosition.z -= 0.001f;
-    objectRotation.y += 1.f;
-    objectScale += 0.001f;*/
-
     ModelMatrix = glm::mat4(1.f);
     ModelMatrix = glm::translate(ModelMatrix, objectPosition); //matrice identité mais avec des valeurs dans la dernière colonne // on multiplie la matrice de coordonnée avec la matrice de translation et les valeurs s'additionnent
     ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.x), glm::vec3(1.f, 0.f, 0.f));
@@ -284,6 +291,8 @@ void Render(GLFWwindow* window)
     texture0.bind();
 
     texture1.bind();
+
+    material0.sendToShader(basicProgram);
 
     // Bind VAO
     glBindVertexArray(VAO);

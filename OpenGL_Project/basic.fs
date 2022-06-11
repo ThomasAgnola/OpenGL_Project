@@ -5,33 +5,56 @@
 // a partir du moment ou elle est marque 'out'
 //exemple, ici o_FragColor est une variable utilisateur qui remplace gl_FragColor
 
+struct Material
+{
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular; // ajout d'un reflet de lumiere
+	sampler2D diffuseTexture; // premiere texture
+	sampler2D specularTexture; // Correspond a la deuxieme texture
+};
+
 out vec4 o_FragColor;
 
 in vec4 v_color;
+in vec3 v_position;
+in vec3 v_normal;
 in vec2 v_texcoords;
 
+uniform Material material;
+
 uniform float u_Time;
-uniform sampler2D u_sampler;
-uniform sampler2D u_sampler1; //afficher la deuxième imahe avec texture
+
+uniform vec3 lightPos;
+uniform vec3 cameraPos;
 
 void main(void) 
 {
-	float g = mod(sin(u_Time), 1.0);
-
-	vec4 texcolor = texture2D(u_sampler, v_texcoords);
-	vec4 texcolor1 = texture2D(u_sampler1, v_texcoords);
-
 	vec4 color = v_color;
 
-	color.g = g;
+	vec4 texcolor = texture2D(material.diffuseTexture, v_texcoords);
+	vec4 texcolor1 = texture2D(material.specularTexture, v_texcoords);
 
-	//gl_FragColor = texcolor;
-	//gl_FragColor = color;
+	// ambient light
+	vec3 ambientLight = material.ambient;
 
-	// melange = blend
-	// additif => +
-	// modulation => *
-	
-	gl_FragColor = texcolor * texcolor1 * color;
+	// diffuse light
+	vec3 posToLightDirVec = normalize(v_position - lightPos);
+	vec3 diffuseColor = vec3(1.f, 1.f, 1.f);
+	float diffuse = clamp(dot(posToLightDirVec, v_normal), 0, 1);
+	vec3 diffuseFinal = material.diffuse * diffuse;
+
+	//specular light
+	vec3 lightToPosDirVec = normalize(lightPos - v_position);
+	vec3 reflectDirVec = normalize(reflect(lightToPosDirVec, normalize(v_normal)));
+	vec3 posToViewDirVec = normalize(v_position - cameraPos);
+	float specularConstant = pow(max(dot(posToViewDirVec, reflectDirVec), 0), 35);
+	vec3 specularFinal = material.specular * specularConstant;
+
+	// calulcate final shader
+	gl_FragColor = 
+	texcolor
+	* texcolor1
+	* (vec4(ambientLight, 1.f) + vec4(diffuseFinal, 1.f) + vec4(specularFinal, 1.f));
 
 }

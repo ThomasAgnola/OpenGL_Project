@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClInclude Include="..\libs\common\GLShader.h" />
     <ClInclude Include="libs.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>

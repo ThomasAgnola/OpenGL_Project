@@ -27,4 +27,5 @@ struct Vertex
 	glm::vec3 position;
 	Color color;
 	glm::vec2 texcoords;
+	glm::vec3 normal;
 };
