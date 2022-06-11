@@ -137,7 +137,9 @@
     <ClInclude Include="..\libs\common\GLShader.h" />
     <ClInclude Include="libs.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="basic.fs" />

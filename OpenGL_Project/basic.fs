@@ -39,7 +39,7 @@ vec3 calculateAmbient(Material material)
 
 vec3 calculateDiffuse(Material material, vec3 v_position, vec3 v_normal, vec3 lightPos)
 {
-	vec3 posToLightDirVec = normalize(v_position - lightPos);
+	vec3 posToLightDirVec = normalize(lightPos - v_position);
 	float diffuse = clamp(dot(posToLightDirVec, v_normal), 0, 1);
 	vec3 diffuseFinal = material.diffuse * diffuse;
 
@@ -48,9 +48,9 @@ vec3 calculateDiffuse(Material material, vec3 v_position, vec3 v_normal, vec3 li
 
 vec3 calulcateSpecular(Material material, vec3 v_position, vec3 v_normal, vec3 lightPos, vec3 cameraPos)
 {
-	vec3 lightToPosDirVec = normalize(lightPos - v_position);
+	vec3 lightToPosDirVec = normalize(v_position - lightPos);
 	vec3 reflectDirVec = normalize(reflect(lightToPosDirVec, normalize(v_normal)));
-	vec3 posToViewDirVec = normalize(v_position - cameraPos);
+	vec3 posToViewDirVec = normalize(cameraPos - v_position);
 	float specularConstant = pow(max(dot(posToViewDirVec, reflectDirVec), 0), 35);
 	vec3 specularFinal = material.specular * specularConstant;
 

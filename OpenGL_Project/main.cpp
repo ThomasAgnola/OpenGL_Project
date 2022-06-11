@@ -1,15 +1,15 @@
 #include "libs.h"
 #include "GLShader.h"
-#include "Texture.h"
-#include "Material.h"
 
 GLShader g_BasicShader;
 // Texture
 Texture texture0;
 Texture texture1;
-//Material
+// Material
 Material material0;
 Material material1;
+// Mesh
+Mesh mesh;
 
 GLuint VBO;
 GLuint IBO;
@@ -40,10 +40,10 @@ glm::vec3 objectScale(1.f);
 Vertex vertices[] =
 {
     //Position                      //Color                         //TexCoords             //Normal
-    glm::vec3(-0.5f, 0.5f, 0.f),    255, 0, 0, 255,                 glm::vec2(0.f, 0.f),    glm::vec3(0.f, 0.f, -1.f),
-    glm::vec3(-0.5f, -0.5f, 0.f),   0, 255, 0, 255,                 glm::vec2(0.f, 1.f),    glm::vec3(0.f, 0.f, -1.f),
-    glm::vec3(0.5f, -0.5f, 0.f),    0, 0, 255, 255,                 glm::vec2(1.f, 1.f),    glm::vec3(0.f, 0.f, -1.f),
-    glm::vec3(0.5f, 0.5f, 0.f),     0, 255, 0, 255,               glm::vec2(1.f, 0.f),    glm::vec3(0.f, 0.f, -1.f)
+    glm::vec3(-0.5f, 0.5f, 0.f),    255, 0, 0, 255,                 glm::vec2(0.f, 0.f),    glm::vec3(0.f, 0.f, 1.f),
+    glm::vec3(-0.5f, -0.5f, 0.f),   0, 255, 0, 255,                 glm::vec2(0.f, 1.f),    glm::vec3(0.f, 0.f, 1.f),
+    glm::vec3(0.5f, -0.5f, 0.f),    0, 0, 255, 255,                 glm::vec2(1.f, 1.f),    glm::vec3(0.f, 0.f, 1.f),
+    glm::vec3(0.5f, 0.5f, 0.f),     255, 255, 0, 255,               glm::vec2(1.f, 0.f),    glm::vec3(0.f, 0.f, 1.f)
 };
 unsigned nbrOfVertices = sizeof(vertices) / sizeof(Vertex);
 
@@ -62,39 +62,39 @@ void updateinput(GLFWwindow* window)
     }
 }
 
-void updateObject(GLFWwindow* window, glm::vec3& position, glm::vec3& rotation, glm::vec3& scale)
+void updateObject(GLFWwindow* window, Mesh& mesh)
 {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        position.z -= 0.01f;
+        mesh.move(glm::vec3(0.f, 0.f, -0.01f));
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
-        position.x -= 0.01f;
+        mesh.move(glm::vec3(-0.01f, 0.f, 0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        position.z += 0.01f;
+        mesh.move(glm::vec3(0.f, 0.f, 0.01f));
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
-        position.x += 0.01f;
+        mesh.move(glm::vec3(0.01f, 0.f, 0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
-        rotation.y -= 1.f;
+        mesh.rotate(glm::vec3(0.f, -1.f, 0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
-        rotation.y += 1.f;
+        mesh.rotate(glm::vec3(0.f, 1.f, 0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
     {
-        scale += 0.01f;
+        mesh.scale(glm::vec3(0.01f));
     }
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
     {
-        scale -= 0.01f;
+        mesh.scale(glm::vec3(-0.01f));
     }
 }
 
@@ -144,43 +144,20 @@ void Initialize()
         std::cout << "error link_status not sucess !" << "\n";
     }
 
-    // VAO, VBO, IBO
-    // GEN VAO and BIND
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    // GEN VBO and BIND/SEND DATA
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // GEN IBO and BIND/SEND DATA
-    glGenBuffers(1, &IBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
     const uint32_t stride = sizeof(Vertex);
 
     int location = glGetAttribLocation(program, "a_position");
-    glEnableVertexAttribArray(location);
-    glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, position));
 
     int color_location = glGetAttribLocation(program, "a_color");
-    glEnableVertexAttribArray(color_location);
-    glVertexAttribPointer(color_location, 4, GL_UNSIGNED_BYTE, /*normalisation entre [0;1]*/true, stride, reinterpret_cast<void*>(offsetof(Vertex, color)));
 
     int loc_texcoords = glGetAttribLocation(program, "a_texcoords");
-    glEnableVertexAttribArray(loc_texcoords);
-    glVertexAttribPointer(loc_texcoords, 2, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, texcoords));
 
     int normal_location = glGetAttribLocation(program, "a_normal");
-    glEnableVertexAttribArray(normal_location);
-    glVertexAttribPointer(normal_location, 3, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, normal));
 
-    //reinit tout a commencer en premier par le VAO
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    // Model
+    mesh.loadMesh(vertices, nbrOfVertices, indices, nbrOfIndices, 
+        location, color_location, loc_texcoords, normal_location, 
+        glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f));
 
     // Texture init done globally -> to be usable in the render
     // Texture 0 // Load image
@@ -191,16 +168,6 @@ void Initialize()
 
     // Material 0
     material0.loadMaterial(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(1.f), texture0.getTextureUnit(), texture1.getTextureUnit());
-
-    //Matrice modèle / mouvement / rotation etc..
-    //multiplication des matrices de droite à gauche avec OpenGL /!\ //
-    //glm::mat4 ModelMatrix(1.f); //Matrice identitée de 4x4
-    ModelMatrix = glm::mat4(1.f);
-    ModelMatrix = glm::translate(ModelMatrix, objectPosition); //matrice identité mais avec des valeurs dans la dernière colonne // on multiplie la matrice de coordonnée avec la matrice de translation et les valeurs s'additionnent
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.x), glm::vec3(1.f, 0.f, 0.f));
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.y), glm::vec3(0.f, 1.f, 0.f));
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.z), glm::vec3(0.f, 0.f, 1.f));
-    ModelMatrix = glm::scale(ModelMatrix, objectScale);
     
     // Init Position of Camera 
     ViewMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraFront, worldUp);
@@ -217,8 +184,6 @@ void Initialize()
 
     glUseProgram(program);
 
-    //envoi de la matrice au shader 
-    glUniformMatrix4fv(glGetUniformLocation(program, "ModelMatrix"), 1, GL_FALSE, glm::value_ptr(ModelMatrix));
     //envoi de la Vue au shader
     glUniformMatrix4fv(glGetUniformLocation(program, "ViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
     //envoi de la Projection au shader
@@ -264,18 +229,9 @@ void Render(GLFWwindow* window)
     int loc_time = glGetUniformLocation(basicProgram, "u_Time");
     glUniform1f(loc_time, time);
 
-
-    //Mouvement Rotation Scale
-    ModelMatrix = glm::mat4(1.f);
-    ModelMatrix = glm::translate(ModelMatrix, objectPosition); //matrice identité mais avec des valeurs dans la dernière colonne // on multiplie la matrice de coordonnée avec la matrice de translation et les valeurs s'additionnent
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.x), glm::vec3(1.f, 0.f, 0.f));
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.y), glm::vec3(0.f, 1.f, 0.f));
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(objectRotation.z), glm::vec3(0.f, 0.f, 1.f));
-    ModelMatrix = glm::scale(ModelMatrix, objectScale);
-
-    glUniformMatrix4fv(glGetUniformLocation(basicProgram, "ModelMatrix"), 1, GL_FALSE, glm::value_ptr(ModelMatrix));
-
+    // update frameBufferSize
     glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+
     // Updating Perspective
     ProjectionMatrix = glm::mat4(1.f);
     ProjectionMatrix = glm::perspective(
@@ -294,14 +250,12 @@ void Render(GLFWwindow* window)
 
     material0.sendToShader(basicProgram);
 
-    // Bind VAO
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-    glDrawElements(GL_TRIANGLES, nbrOfIndices, GL_UNSIGNED_INT, 0);
+    mesh.render(basicProgram);
 
     // fin du render, retour a l'etat initial
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glUseProgram(0);
     glActiveTexture(0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -338,7 +292,7 @@ int main(void)
     {
         // maj input
         glfwPollEvents();
-        updateObject(window, objectPosition, objectRotation, objectScale);
+        updateObject(window, mesh);
 
         // update
         updateinput(window);

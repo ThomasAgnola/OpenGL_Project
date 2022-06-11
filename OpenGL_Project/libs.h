@@ -17,15 +17,7 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
-struct Color
-{
-	uint8_t r, g, b, a; // equivalent de unsigned char
-};
-
-struct Vertex
-{
-	glm::vec3 position;
-	Color color;
-	glm::vec2 texcoords;
-	glm::vec3 normal;
-};
+#include "Vertex.h"
+#include "Texture.h"
+#include "Material.h"
+#include "Mesh.h"
