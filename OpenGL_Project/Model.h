@@ -1,6 +1,7 @@
 #pragma once
 #include "libs.h"
 #include "OBJLoader.h"
+#include "TinyOBJLoader.h"
 
 class Model
 {
@@ -52,7 +53,7 @@ public:
 		this->overrideTextureDiffuse = overrideTexDiff;
 		this->overrideTextureSpecular = overrideTexSpec;
 
-		std::vector<Vertex> mesh = loadOBJ(obj_file);
+		std::vector<Vertex> mesh = loadOBJfromlib(obj_file);
 		this->meshes.push_back(new Mesh(mesh.data(), mesh.size(), NULL, 0,
 			position, color, tex_coords, normal,
 			glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), scale));
