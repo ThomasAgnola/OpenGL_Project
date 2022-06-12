@@ -6,7 +6,9 @@ enum direction
 	Forward = 0,
 	Backward,
 	Left,
-	Right
+	Right,
+	Up,
+	Down
 };
 
 class Camera
@@ -120,6 +122,12 @@ public:
 			break;
 		case Right:
 			this->Position += this->right * this->movementSpeed * dt;
+			break;
+		case Up:
+			this->Position += this->up * this->movementSpeed * dt;
+			break;
+		case Down:
+			this->Position -= this->up * this->movementSpeed * dt;
 			break;
 		default:
 			break;

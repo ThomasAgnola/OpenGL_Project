@@ -122,11 +122,11 @@ void updateKeyboardInput()
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
     {
-        cameraPosition.y -= 0.05f;
+        camera.move(dt, Down);
     }
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     {
-        cameraPosition.y += 0.05f;
+        camera.move(dt, Up);
     }
 }
 
@@ -231,7 +231,6 @@ void Initialize()
 
     //Can choose between obj or primitive
     /*
-    //Pyramid pyramid = Pyramid();
     Quad quad = Quad();
     meshes.push_back(new Mesh(&quad,
     location, color_location, loc_texcoords, normal_location,
