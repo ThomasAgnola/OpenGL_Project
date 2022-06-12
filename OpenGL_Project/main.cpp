@@ -31,19 +31,16 @@ GLShader g_PhongShader;
 Texture texture0;
 Texture texture1;
 Texture texture2;
+Texture texture3;
 // Material
 Material material0;
 Material material1;
+Material material2;
 
 // Model
 std::vector<Model*> models;
 //Model model;
 
-GLuint VBO;
-GLuint IBO;
-GLuint VAO;
-
-glm::mat4 ModelMatrix(1.f);
 glm::mat4 ViewMatrix(1.f);
 
 // Camera start Position
@@ -57,11 +54,6 @@ float nearPlane = 0.1f;
 float farPlane = 100.f;
 glm::mat4 ProjectionMatrix(1.f);
 
-
-// defintion de variable pour la position/rotation/scale de l'object
-glm::vec3 objectPosition(0.f);
-glm::vec3 objectRotation(0.f);
-glm::vec3 objectScale(1.f);
 
 void framebuffer_resize_callback(GLFWwindow* windows, int fbW, int fbH)
 {
@@ -212,12 +204,16 @@ void Initialize()
 
     texture1.loadImage("Minions.jpg", GL_TEXTURE_2D, 1);
 
-    texture2.loadImage("glass-textures.png", GL_TEXTURE_2D, 0);
+    texture2.loadImage("glass-textures.png", GL_TEXTURE_2D, 2);
+
+    texture2.loadImage("escher_animation.jpg", GL_TEXTURE_2D, 3);
 
     // Materials
     material0.loadMaterial(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(1.f), texture0.getTextureUnit(), texture1.getTextureUnit());
 
     material1.loadMaterial(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(2.f), texture1.getTextureUnit(), texture2.getTextureUnit());
+
+    material2.loadMaterial(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(2.f), texture3.getTextureUnit(), texture2.getTextureUnit());
 
 
     // Load obj file via a function to a Vertex
@@ -242,30 +238,22 @@ void Initialize()
         location, color_location, loc_texcoords, normal_location,
         glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(0.001f)));
 
-    Mesh mesh_test = Mesh(temp.data(), temp.size(), NULL, 0,
-        phongPosition, phongColor, phongTexcoord, phongNormal,
-        glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(0.001f));
-
     // Init Models
+    
     // init model with same mesh but position, material and texture can be different
     //models.push_back(new Model(glm::vec3(0.f), &material0, &texture0, &texture1, meshes));
-
-    //models.push_back(new Model(glm::vec3(-2.f, 0.f, -1.f), &material1, &texture1, &texture2, mesh_test));
-
-    //models.push_back(new Model(glm::vec3(0.f, 1.f, 0.f), &material1, &texture0, &texture2, meshes));
 
     // Init model with different mesh
     models.push_back(new Model(glm::vec3(0.4f, -0.1f, 0.5f), glm::vec3(0.001f), &material0, &texture0, &texture1, "Deer.obj", location, color_location, loc_texcoords, normal_location));
 
-    models.push_back(new Model(glm::vec3(-1.3f, 0.f, -0.5f), glm::vec3(0.5f), &material1, &texture1, &texture2, "cube_convert.obj", location, color_location, loc_texcoords, normal_location));
-    models[models.size() - 1]->rotate(glm::vec3(0.f, 0.f, 180.f));
+    models.push_back(new Model(glm::vec3(-1.3f, -0.5f, -0.5f), glm::vec3(0.5f), &material2, &texture3, &texture2, "bunny.obj", location, color_location, loc_texcoords, normal_location));
 
     models.push_back(new Model(glm::vec3(0.f, -0.2f, 0.f), glm::vec3(0.005f), &material1, &texture0, &texture2, "teapot_convert.obj", location, color_location, loc_texcoords, normal_location));
 
     // destruction because copied in Models
     for (auto*& i : meshes)
         delete i;
-    
+
     // Init Position of Camera 
     ViewMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraFront, worldUp);
 
@@ -277,6 +265,7 @@ void Initialize()
         farPlane
     );
 
+    // Setting Scene light position
     glm::vec3 lightPos0(-0.5f, 0.1f, 1.f);
 
     glUseProgram(program);
@@ -286,7 +275,7 @@ void Initialize()
     //envoi de la Projection au shader
     glUniformMatrix4fv(glGetUniformLocation(program, "ProjectionMatrix"), 1, GL_FALSE, glm::value_ptr(ProjectionMatrix));
 
-    //envoi de lumiere
+    //envoi de la lumiere
     glUniform3fv(glGetUniformLocation(program, "lightPos"), 1, glm::value_ptr(lightPos0));
 
     glUseProgram(0);
@@ -295,11 +284,8 @@ void Initialize()
 
 void Terminate()
 {
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &IBO);
-    glDeleteVertexArrays(1, &VAO);
-
     g_BasicShader.Destroy();
+    g_PhongShader.Destroy();
 }
 
 void Render(GLFWwindow* window) 
@@ -307,9 +293,6 @@ void Render(GLFWwindow* window)
     //recupere les dimensions de la fenetre
     int width, height;
     glfwGetWindowSize(window, &width, &height);
-
-    // temps ecoule depuis le lancement de l'application
-    float time = glfwGetTime();
 
     glClearColor(0.5f, 0.5f, 0.5f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -321,9 +304,6 @@ void Render(GLFWwindow* window)
     const uint32_t stride = sizeof(Vertex);
 
     // --- uniforms
-
-    int loc_time = glGetUniformLocation(basicProgram, "u_Time");
-    glUniform1f(loc_time, time);
 
     //Update view matrix
     ViewMatrix = camera.getViewMatrix();
@@ -346,6 +326,10 @@ void Render(GLFWwindow* window)
     );
     glUniformMatrix4fv(glGetUniformLocation(basicProgram, "ProjectionMatrix"), 1, GL_FALSE, glm::value_ptr(ProjectionMatrix));
 
+    // rotate the model
+    models[0]->rotate(glm::vec3(0.f, 0.1f, 0.2f));
+    models[1]->rotate(glm::vec3(0.f, 0.1f, 0.f));
+    models[2]->rotate(glm::vec3(0.5f, 0.3f, 0.f));
 
     // Render models
     for (auto& i : models)
@@ -354,6 +338,8 @@ void Render(GLFWwindow* window)
         i->render(basicProgram);
     }
 
+
+    // Test to use different shader
     /*
     glUseProgram(basicProgram);
     models[0]->render(basicProgram);
@@ -362,6 +348,7 @@ void Render(GLFWwindow* window)
     glUseProgram(basicProgram);
     models[2]->render(basicProgram);
     */
+    
     // fin du render, retour a l'etat initial
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -410,14 +397,6 @@ int main(void)
         updateKeyboardInput();
         updateMouseInput();
         camera.updateInput(dt, -1, mouseOffsetX, mouseOffsetY);
-
-        models[0]->rotate(glm::vec3(0.f, 0.1f, 0.f));
-        models[1]->rotate(glm::vec3(0.f, 0.2f, 0.f));
-        models[2]->rotate(glm::vec3(0.f, 0.3f, 0.f));
-
-
-        // Show mouse value in real time in console
-        //std::cout << "DT : " << dt << "\n" << " Mouse OffsetX : " << mouseOffsetX << " Mouse OffsetY : " << mouseOffsetY << "\n";
 
         // maj fenetre
         // clear

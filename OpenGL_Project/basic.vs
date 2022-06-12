@@ -14,8 +14,6 @@ out vec3 v_position;
 out vec2 v_texcoords;
 out vec3 v_normal;
 
-uniform float u_Time;
-
 uniform mat4 ModelMatrix;
 uniform mat4 ViewMatrix;
 uniform mat4 ProjectionMatrix;

@@ -13,8 +13,3 @@ struct Vertex
 	glm::vec2 texcoords;
 	glm::vec3 normal;
 };
-
-struct Object
-{
-	std::vector<Vertex> vertex;
-};

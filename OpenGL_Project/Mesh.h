@@ -206,8 +206,8 @@ public:
 			glDeleteBuffers(1, &this->IBO);
 		}
 
-		//delete[] this->vertexArray;
-		//delete[] this->indexArray;
+		delete[] this->vertexArray;
+		delete[] this->indexArray;
 	}
 
 	// Accessors

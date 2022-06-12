@@ -19,7 +19,7 @@ static std::vector<Vertex> loadOBJfromlib(const char* filename)
 
 	tinyobj::ObjReader reader;
 	tinyobj::ObjReaderConfig reader_config;
-	reader_config.mtl_search_path = "./";
+	reader_config.mtl_search_path = "./material/";
 
 	if (!reader.ParseFromFile(filename, reader_config))
 	{
@@ -81,10 +81,9 @@ static std::vector<Vertex> loadOBJfromlib(const char* filename)
 			index_offset += fv;
 
 			// per-face material
-			shapes[s].mesh.material_ids[f];
+			//std::cout << "Material : " << shapes[s].mesh.material_ids[f] << "\n";
 		}
 	}
-	Object gameobject = { vertices };
 	return vertices;
 
 }

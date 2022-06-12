@@ -6,8 +6,11 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+
+// Reference to image loader lib
 #include <stb_image.h>
 
+// References to glew libs
 #include <GL/glew.h>
 #include <GL/wglew.h>
 #include <GLFW/glfw3.h>
@@ -21,6 +24,7 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
+// References to Personal files
 #include "Vertex.h"
 #include "Texture.h"
 #include "Material.h"

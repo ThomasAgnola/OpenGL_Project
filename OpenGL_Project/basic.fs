@@ -25,8 +25,6 @@ in vec2 v_texcoords;
 
 uniform Material material;
 
-uniform float u_Time;
-
 uniform vec3 lightPos;
 uniform vec3 cameraPos;
 
@@ -77,6 +75,6 @@ void main(void)
 	gl_FragColor = 
 	texcolor
 	* texcolor1
-	* (vec4(ambientFinal, 1.f) + vec4(diffuseFinal, 1.f) + vec4(specularFinal, 1.f));
+	* (vec4(ambientFinal, 2.f) + vec4(diffuseFinal, 1.f) + vec4(specularFinal, 1.f));
 
 }
