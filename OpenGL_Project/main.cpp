@@ -1,5 +1,6 @@
 #include "libs.h"
 #include "GLShader.h"
+#include "Camera.h"
 
 //Window variables
 GLFWwindow* window;
@@ -32,6 +33,9 @@ Material material0;
 Material material1;
 // Mesh
 Mesh mesh;
+
+// Model
+//Model model;
 
 GLuint VBO;
 GLuint IBO;
@@ -208,7 +212,15 @@ void Initialize()
         nearPlane,
         farPlane
     );
-
+    /*
+    model.loadModel(
+        glm::vec3(0.f),
+        &material0,
+        texture0.getTextureUnit(),
+        texture1.getTextureUnit(),
+        mesh
+    );
+    */
     glm::vec3 lightPos0(0.f, 0.f, 1.f);
 
     glUseProgram(program);
@@ -234,7 +246,7 @@ void Terminate()
     g_BasicShader.Destroy();
 }
 
-void Render(GLFWwindow* window)
+void Render(GLFWwindow* window) 
 {
     //recupere les dimensions de la fenetre
     int width, height;
