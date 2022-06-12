@@ -140,6 +140,7 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="Primitives.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Vertex.h" />

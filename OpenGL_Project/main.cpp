@@ -172,6 +172,7 @@ void Initialize()
         std::cout << "error link_status not sucess !" << "\n";
     }
 
+
     const uint32_t stride = sizeof(Vertex);
 
     int location = glGetAttribLocation(program, "a_position");
@@ -182,43 +183,53 @@ void Initialize()
 
     int normal_location = glGetAttribLocation(program, "a_normal");
 
-    // Make meshes locally 
-    std::vector<Mesh*> meshes;
-
-    //Can change figure by primitive
-    //Triangle triangle = Triangle();
-    Pyramid pyramid = Pyramid();
-    Quad quad = Quad();
-    //Quad quad = Quad();
-    meshes.push_back(new Mesh(&pyramid,
-        location, color_location, loc_texcoords, normal_location,
-        glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
-
-    meshes.push_back(new Mesh(&quad,
-        location, color_location, loc_texcoords, normal_location,
-        glm::vec3(-1.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(2.f)));
-
     // Texture init done globally -> to be usable in the render if necessary
-    // Texture 0 // Load image
+    // Textures // Load image
     texture0.loadImage("Sunflower_from_Silesia2.jpg", GL_TEXTURE_2D, 0);
 
-    // Texture 1 // Load image
     texture1.loadImage("Minions.jpg", GL_TEXTURE_2D, 1);
 
     texture2.loadImage("glass-textures.png", GL_TEXTURE_2D, 0);
 
-    // Material 0
+    // Materials
     material0.loadMaterial(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(1.f), texture0.getTextureUnit(), texture1.getTextureUnit());
 
-    material1.loadMaterial(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(1.f), texture1.getTextureUnit(), texture2.getTextureUnit());
+    material1.loadMaterial(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(2.f), texture1.getTextureUnit(), texture2.getTextureUnit());
+
+
+    // Load obj file via a function to a Vertex
+    std::vector<Vertex> temp;
+    temp = loadOBJ("Deer.obj");
+
+    // Make meshes locally 
+    std::vector<Mesh*> meshes;
+
+    //Can choose between obj or primitive
+    /*
+    //Pyramid pyramid = Pyramid();
+    Quad quad = Quad();
+    meshes.push_back(new Mesh(&quad,
+    location, color_location, loc_texcoords, normal_location,
+    glm::vec3(-1.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(2.f)));
+    */
 
     // Init Meshes
+    meshes.push_back(new Mesh(temp.data(), temp.size(), NULL, 0,
+        location, color_location, loc_texcoords, normal_location,
+        glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(0.001f)));
+
+    // Init Models
+    // init model with same mesh but position, material and texture can be different
     models.push_back(new Model(glm::vec3(0.f), &material0, &texture0, &texture1, meshes));
 
     models.push_back(new Model(glm::vec3(-2.f, 0.f, -1.f), &material1, &texture1, &texture2, meshes));
 
     models.push_back(new Model(glm::vec3(0.f, 1.f, 0.f), &material1, &texture0, &texture2, meshes));
 
+    // Init model with different mesh
+    models.push_back(new Model(glm::vec3(-0.5f, 0.f, 0.f), glm::vec3(0.005), &material0, &texture0, &texture1, "teapot_convert.obj", location, color_location, loc_texcoords, normal_location));
+
+    // destruction because copied in Models
     for (auto*& i : meshes)
         delete i;
     
@@ -234,6 +245,7 @@ void Initialize()
     );
 
     glm::vec3 lightPos0(0.f, 0.f, 1.f);
+    glm::vec3 lightPos1(-2.f, 1.f, 0.f);
 
     glUseProgram(program);
 
@@ -244,6 +256,7 @@ void Initialize()
 
     //envoi de lumiere
     glUniform3fv(glGetUniformLocation(program, "lightPos"), 1, glm::value_ptr(lightPos0));
+    glUniform3fv(glGetUniformLocation(program, "secondLightPos"), 1, glm::value_ptr(lightPos1));
 
     glUseProgram(0);
 

@@ -106,6 +106,20 @@ public:
 		this->tex_coord = tex_coords;
 		this->normal_location = normal;
 
+		this->nbrOfVertices = nbrOfVertices;
+		this->nbrOfIndices = nbrOfindices;
+		this->vertexArray = new Vertex[this->nbrOfVertices];
+		for (size_t i = 0; i < this->nbrOfVertices; i++)
+		{
+			this->vertexArray[i] = vertexArray[i];
+		}
+
+		this->indexArray = new GLuint[this->nbrOfIndices];
+		for (size_t i = 0; i < this->nbrOfIndices; i++)
+		{
+			this->indexArray[i] = indexArray[i];
+		}
+
 		this->initVAO();
 		this->updateModelMatrix();
 	}

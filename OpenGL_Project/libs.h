@@ -28,3 +28,4 @@
 #include "Primitives.h"
 #include "Camera.h"
 #include "Model.h"
+#include "OBJLoader.h"

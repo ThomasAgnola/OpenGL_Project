@@ -1,5 +1,6 @@
 #pragma once
 #include "libs.h"
+#include "OBJLoader.h"
 
 class Model
 {
@@ -32,6 +33,29 @@ public:
 		{
 			this->meshes.push_back(new Mesh(*i));
 		}
+
+		for (auto& i : this->meshes)
+		{
+			i->move(this->position);
+			i->setOrigin(this->position);
+		}
+	}
+
+	Model(glm::vec3 Position, glm::vec3 scale, Material* material, Texture* overrideTexDiff, Texture* overrideTexSpec, const char* obj_file,
+		int position,
+		int color,
+		int tex_coords,
+		int normal)
+	{
+		this->position = Position;
+		this->material = material;
+		this->overrideTextureDiffuse = overrideTexDiff;
+		this->overrideTextureSpecular = overrideTexSpec;
+
+		std::vector<Vertex> mesh = loadOBJ(obj_file);
+		this->meshes.push_back(new Mesh(mesh.data(), mesh.size(), NULL, 0,
+			position, color, tex_coords, normal,
+			glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), scale));
 
 		for (auto& i : this->meshes)
 		{
@@ -82,12 +106,13 @@ public:
 
 		this->material->sendToShader(program);
 
-		this->overrideTextureDiffuse->bind();
-
-		this->overrideTextureSpecular->bind();
-
 		for (auto& i : this->meshes)
+		{
+			this->overrideTextureDiffuse->bind();
+			this->overrideTextureSpecular->bind();
+
 			i->render(program);
+		}
 
 	}
 
