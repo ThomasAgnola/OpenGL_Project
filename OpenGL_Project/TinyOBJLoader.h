@@ -9,22 +9,12 @@ static std::vector<Vertex> loadOBJfromlib(const char* filename)
 	std::vector<glm::fvec2> vertexTexcoords;
 	std::vector<glm::fvec3> vertexNormals;
 
-	// Face parts
-	std::vector<GLint> vertexPositionIndices;
-	std::vector<GLint> vertexTexcoordIndices;
-	std::vector<GLint> vertexNormalIndices;
-
 	// Vertex array
 	std::vector<Vertex> vertices;
 
-	std::stringstream ss;
-	std::ifstream inFile(filename);
-	std::string line = "";
-	std::string prefixe = "";
 	glm::vec3 temp_vec3;
+	glm::vec3 temp_vec3_2;
 	glm::vec2 temp_vec2;
-	GLint temp_glint = 0;
-
 
 	tinyobj::ObjReader reader;
 	tinyobj::ObjReaderConfig reader_config;
@@ -57,17 +47,6 @@ static std::vector<Vertex> loadOBJfromlib(const char* filename)
 			for (size_t v = 0; v < fv; v++) {
 				// access to vertex
 				tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-				std::cout << "v : " << v 
-					<< " PosIndices : " << idx.vertex_index 
-					<< " Texcoord : " << idx.texcoord_index
-					<< " Normal : " << idx.normal_index
-					<< "\n";
-				if (v == 0)
-					vertexPositionIndices.push_back(idx.vertex_index + 1 );
-				else if (v == 1)
-					vertexTexcoordIndices.push_back(idx.texcoord_index + 1);
-				else if (v == 2)
-					vertexNormalIndices.push_back(idx.normal_index + 1 );
 
 				temp_vec3.x = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
 				temp_vec3.y = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
@@ -76,9 +55,9 @@ static std::vector<Vertex> loadOBJfromlib(const char* filename)
 
 				// Check if `normal_index` is zero or positive. negative = no normal data
 				if (idx.normal_index >= 0) {
-					temp_vec3.x = attrib.normals[3 * size_t(idx.normal_index) + 0];
-					temp_vec3.y = attrib.normals[3 * size_t(idx.normal_index) + 1];
-					temp_vec3.z = attrib.normals[3 * size_t(idx.normal_index) + 2];
+					temp_vec3_2.x = attrib.normals[3 * size_t(idx.normal_index) + 0];
+					temp_vec3_2.y = attrib.normals[3 * size_t(idx.normal_index) + 1];
+					temp_vec3_2.z = attrib.normals[3 * size_t(idx.normal_index) + 2];
 					vertexNormals.push_back(temp_vec3);
 				}
 
@@ -93,26 +72,16 @@ static std::vector<Vertex> loadOBJfromlib(const char* filename)
 				// tinyobj::real_t red   = attrib.colors[3*size_t(idx.vertex_index)+0];
 				// tinyobj::real_t green = attrib.colors[3*size_t(idx.vertex_index)+1];
 				// tinyobj::real_t blue  = attrib.colors[3*size_t(idx.vertex_index)+2];
+
+				Color color = { 255, 255, 255, 255 };
+				Vertex vertex = { temp_vec3, color, temp_vec2, temp_vec3_2 };
+				vertices.push_back(vertex);
 			}
 			index_offset += fv;
 
 			// per-face material
 			shapes[s].mesh.material_ids[f];
 		}
-
-		// Build final arrays
-		vertices.resize(vertexPositionIndices.size(), Vertex());
-
-		// Load all indices
-		Color color = { 255, 255, 255, 255 };
-		for (size_t i = 0; i < vertices.size(); i++)
-		{
-			vertices[i].position = vertexPositions[vertexPositionIndices[i] - 1];
-			vertices[i].texcoords = vertexTexcoords[vertexTexcoordIndices[i] - 1];
-			vertices[i].normal = vertexNormals[vertexNormalIndices[i] - 1];
-			vertices[i].color = color;
-		}
-
 	}
 
 	return vertices;
