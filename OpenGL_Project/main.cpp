@@ -32,10 +32,12 @@ Texture texture0;
 Texture texture1;
 Texture texture2;
 Texture texture3;
+Texture red;
 // Material
 Material material0;
 Material material1;
 Material material2;
+Material matRed;
 
 // Model
 std::vector<Model*> models;
@@ -206,7 +208,9 @@ void Initialize()
 
     texture2.loadImage("glass-textures.png", GL_TEXTURE_2D, 2);
 
-    texture2.loadImage("escher_animation.jpg", GL_TEXTURE_2D, 3);
+    texture3.loadImage("escher_animation.jpg", GL_TEXTURE_2D, 3);
+
+    red.loadImage("Red.png", GL_TEXTURE_2D, 4);
 
     // Materials
     material0.loadMaterial(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(1.f), texture0.getTextureUnit(), texture1.getTextureUnit());
@@ -215,7 +219,7 @@ void Initialize()
 
     material2.loadMaterial(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(2.f), texture3.getTextureUnit(), texture2.getTextureUnit());
 
-
+    matRed.loadMaterial(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(2.f), red.getTextureUnit(), red.getTextureUnit());
     // Load obj file via a function to a Vertex
     std::vector<Vertex> temp;
     temp = loadOBJfromlib("Deer.obj");
@@ -233,6 +237,11 @@ void Initialize()
     glm::vec3(-1.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(2.f)));
     */
 
+    Pyramid mesh_pyramid = Pyramid();
+    Mesh pyramid(&mesh_pyramid,
+        location, color_location, loc_texcoords, normal_location,
+        glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(0.5f));
+
     // Init Meshes
     meshes.push_back(new Mesh(temp.data(), temp.size(), NULL, 0,
         location, color_location, loc_texcoords, normal_location,
@@ -244,11 +253,14 @@ void Initialize()
     //models.push_back(new Model(glm::vec3(0.f), &material0, &texture0, &texture1, meshes));
 
     // Init model with different mesh
+
     models.push_back(new Model(glm::vec3(0.4f, -0.1f, 0.5f), glm::vec3(0.001f), &material0, &texture0, &texture1, "Deer.obj", location, color_location, loc_texcoords, normal_location));
 
     models.push_back(new Model(glm::vec3(-1.3f, -0.5f, -0.5f), glm::vec3(0.5f), &material2, &texture3, &texture2, "bunny.obj", location, color_location, loc_texcoords, normal_location));
 
     models.push_back(new Model(glm::vec3(0.f, -0.2f, 0.f), glm::vec3(0.005f), &material1, &texture0, &texture2, "teapot_convert.obj", location, color_location, loc_texcoords, normal_location));
+
+    models.push_back(new Model(glm::vec3(-0.4f, -0.6f, -0.4f), &matRed, &red, &red, pyramid));
 
     // destruction because copied in Models
     for (auto*& i : meshes)
@@ -330,6 +342,7 @@ void Render(GLFWwindow* window)
     models[0]->rotate(glm::vec3(0.f, 0.1f, 0.2f));
     models[1]->rotate(glm::vec3(0.f, 0.1f, 0.f));
     models[2]->rotate(glm::vec3(0.5f, 0.3f, 0.f));
+    models[3]->rotate(glm::vec3(0.f, 0.f, 0.4f));
 
     // Render models
     for (auto& i : models)
