@@ -30,7 +30,7 @@ static std::vector<Vertex> loadOBJfromlib(const char* filename)
 	tinyobj::ObjReaderConfig reader_config;
 	reader_config.mtl_search_path = "./";
 
-	if (!reader.ParseFromFile("Deer.obj", reader_config))
+	if (!reader.ParseFromFile(filename, reader_config))
 	{
 		if (!reader.Error().empty()) {
 			std::cerr << "TinyObjReader: " << reader.Error();
@@ -51,19 +51,24 @@ static std::vector<Vertex> loadOBJfromlib(const char* filename)
 		// Loop over faces(polygon)
 		size_t index_offset = 0;
 		for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-			std::cout << " index : " << f << "\n";
-			if (f == 0)
-				vertexPositionIndices.push_back(temp_glint);
-			else if (f == 1)
-				vertexTexcoordIndices.push_back(temp_glint);
-			else if (f == 2)
-				vertexNormalIndices.push_back(temp_glint);
 			size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
 
 			// Loop over vertices in the face.
 			for (size_t v = 0; v < fv; v++) {
 				// access to vertex
 				tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+				std::cout << "v : " << v 
+					<< " PosIndices : " << idx.vertex_index 
+					<< " Texcoord : " << idx.texcoord_index
+					<< " Normal : " << idx.normal_index
+					<< "\n";
+				if (v == 0)
+					vertexPositionIndices.push_back(idx.vertex_index + 1 );
+				else if (v == 1)
+					vertexTexcoordIndices.push_back(idx.texcoord_index + 1);
+				else if (v == 2)
+					vertexNormalIndices.push_back(idx.normal_index + 1 );
+
 				temp_vec3.x = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
 				temp_vec3.y = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
 				temp_vec3.z = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
