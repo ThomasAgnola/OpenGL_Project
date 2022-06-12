@@ -192,7 +192,11 @@ void Initialize()
     //Quad quad = Quad();
     meshes.push_back(new Mesh(&pyramid,
         location, color_location, loc_texcoords, normal_location,
-        glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+        glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+
+    meshes.push_back(new Mesh(&quad,
+        location, color_location, loc_texcoords, normal_location,
+        glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
 
     // Texture init done globally -> to be usable in the render if necessary
     // Texture 0 // Load image
@@ -212,6 +216,8 @@ void Initialize()
     models.push_back(new Model(glm::vec3(0.f), &material0, &texture0, &texture1, meshes));
 
     models.push_back(new Model(glm::vec3(-2.f, 0.f, -1.f), &material1, &texture1, &texture2, meshes));
+
+    models.push_back(new Model(glm::vec3(0.f, 1.f, 0.f), &material1, &texture0, &texture2, meshes));
 
     for (auto*& i : meshes)
         delete i;
@@ -354,6 +360,8 @@ int main(void)
 
         models[0]->rotate(glm::vec3(0.f, 0.1f, 0.f));
         models[1]->rotate(glm::vec3(0.f, 0.5f, 0.f));
+        models[2]->rotate(glm::vec3(0.f, 1.f, 0.f));
+
 
         // Show mouse value in real time in console
         //std::cout << "DT : " << dt << "\n" << " Mouse OffsetX : " << mouseOffsetX << " Mouse OffsetY : " << mouseOffsetY << "\n";

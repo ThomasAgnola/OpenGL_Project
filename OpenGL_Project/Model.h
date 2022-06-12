@@ -36,6 +36,7 @@ public:
 		for (auto& i : this->meshes)
 		{
 			i->move(this->position);
+			i->setOrigin(this->position);
 		}
 	}
 

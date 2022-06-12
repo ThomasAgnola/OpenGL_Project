@@ -22,6 +22,7 @@ private:
 	GLuint IBO;
 
 	glm::vec3 Position;
+	glm::vec3 Origin;
 	glm::vec3 Rotation;
 	glm::vec3 Scale;
 	glm::mat4 ModelMatrix;
@@ -73,28 +74,30 @@ private:
 	void updateModelMatrix()
 	{
 		this->ModelMatrix = glm::mat4(1.f);
-		this->ModelMatrix = glm::translate(this->ModelMatrix, glm::vec3(0.f, 0.f, 0.f));
+		this->ModelMatrix = glm::translate(this->ModelMatrix, this->Origin);
 		this->ModelMatrix = glm::rotate(this->ModelMatrix, glm::radians(this->Rotation.x), glm::vec3(1.f, 0.f, 0.f));
 		this->ModelMatrix = glm::rotate(this->ModelMatrix, glm::radians(this->Rotation.y), glm::vec3(0.f, 1.f, 0.f));
 		this->ModelMatrix = glm::rotate(this->ModelMatrix, glm::radians(this->Rotation.z), glm::vec3(0.f, 0.f, 1.f));
-		this->ModelMatrix = glm::translate(this->ModelMatrix, this->Position);
+		this->ModelMatrix = glm::translate(this->ModelMatrix, this->Position - this->Origin);
 		this->ModelMatrix = glm::scale(this->ModelMatrix, this->Scale);
 	}
 
 public:
-	Mesh(Vertex* vertexArray, 
-		const unsigned& nbrOfVertices, 
-		GLuint* indexArray, 
+	Mesh(Vertex* vertexArray,
+		const unsigned& nbrOfVertices,
+		GLuint* indexArray,
 		const unsigned& nbrOfindices,
 		int position,
 		int color,
 		int tex_coords,
 		int normal,
 		glm::vec3 Position = glm::vec3(0.f),
+		glm::vec3 Origin = glm::vec3(0.f),
 		glm::vec3 Rotation = glm::vec3(0.f),
 		glm::vec3 Scale = glm::vec3(1.f))
 	{
 		this->Position = Position;
+		this->Origin = Origin;
 		this->Rotation = Rotation;
 		this->Scale = Scale;
 
@@ -113,10 +116,12 @@ public:
 		int tex_coords,
 		int normal,
 		glm::vec3 Position = glm::vec3(0.f),
+		glm::vec3 Origin = glm::vec3(0.f),
 		glm::vec3 Rotation = glm::vec3(0.f),
 		glm::vec3 Scale = glm::vec3(1.f))
 	{
 		this->Position = Position;
+		this->Origin = Origin;
 		this->Rotation = Rotation;
 		this->Scale = Scale;
 
@@ -146,6 +151,7 @@ public:
 	Mesh(const Mesh& obj)
 	{
 		this->Position = obj.Position;
+		this->Origin = obj.Origin;
 		this->Rotation = obj.Rotation;
 		this->Scale = obj.Scale;
 
@@ -264,6 +270,13 @@ public:
 	{
 		this->Position = position;
 	}
+
+	// Modifiers
+	void setOrigin(const glm::vec3 Origin)
+	{
+		this->Origin = Origin;
+	}
+
 
 	void setRotation(const glm::vec3 rotation)
 	{
