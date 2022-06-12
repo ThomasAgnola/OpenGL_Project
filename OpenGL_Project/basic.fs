@@ -28,7 +28,6 @@ uniform Material material;
 uniform float u_Time;
 
 uniform vec3 lightPos;
-uniform vec3 secondLightPos;
 uniform vec3 cameraPos;
 
 // Fonctions

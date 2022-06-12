@@ -70,5 +70,11 @@
     <None Include="basic.vs">
       <Filter>Fichiers d%27en-tête</Filter>
     </None>
+    <None Include="phong.fs">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </None>
+    <None Include="phong.vs">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </None>
   </ItemGroup>
 </Project>

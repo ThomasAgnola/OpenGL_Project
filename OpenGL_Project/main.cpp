@@ -26,6 +26,7 @@ Camera camera;
 
 // Shader
 GLShader g_BasicShader;
+GLShader g_PhongShader;
 // Texture
 Texture texture0;
 Texture texture1;
@@ -153,21 +154,38 @@ void Initialize()
     //Input
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+
+    // Load Shader 1
     // Vertex
     g_BasicShader.LoadVertexShader("basic.vs");
-
     // Fragment
     g_BasicShader.LoadFragmentShader("basic.fs");
-
+    // Create shader
     g_BasicShader.Create();
+
+    // Load Shader 2
+    g_PhongShader.LoadVertexShader("phong.vs");
+
+    g_PhongShader.LoadFragmentShader("phong.fs");
+
+    g_PhongShader.Create();
+
+
 #ifdef WIN32
     wglSwapIntervalEXT(1);
 #endif // WIN32
 
     // Program
     auto program = g_BasicShader.GetProgram();
+    auto phongProgram = g_PhongShader.GetProgram();
 
     glGetProgramiv(program, GL_LINK_STATUS, &sucess);
+    if (!sucess)
+    {
+        std::cout << "error link_status not sucess !" << "\n";
+    }
+
+    glGetProgramiv(phongProgram, GL_LINK_STATUS, &sucess);
     if (!sucess)
     {
         std::cout << "error link_status not sucess !" << "\n";
@@ -176,13 +194,17 @@ void Initialize()
 
     const uint32_t stride = sizeof(Vertex);
 
+    // BasicProgram location
     int location = glGetAttribLocation(program, "a_position");
-
     int color_location = glGetAttribLocation(program, "a_color");
-
     int loc_texcoords = glGetAttribLocation(program, "a_texcoords");
-
     int normal_location = glGetAttribLocation(program, "a_normal");
+
+    // PhongProgram location
+    int phongPosition = glGetAttribLocation(phongProgram, "a_position");
+    int phongNormal = glGetAttribLocation(phongProgram, "a_normal");
+    int phongTexcoord = glGetAttribLocation(phongProgram, "a_texcoords");
+    int phongColor = glGetAttribLocation(phongProgram, "a_color");
 
     // Texture init done globally -> to be usable in the render if necessary
     // Textures // Load image
@@ -221,16 +243,25 @@ void Initialize()
         location, color_location, loc_texcoords, normal_location,
         glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(0.001f)));
 
+    Mesh mesh_test = Mesh(temp.data(), temp.size(), NULL, 0,
+        phongPosition, phongColor, phongTexcoord, phongNormal,
+        glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(0.001f));
+
     // Init Models
     // init model with same mesh but position, material and texture can be different
-    models.push_back(new Model(glm::vec3(0.f), &material0, &texture0, &texture1, meshes));
+    //models.push_back(new Model(glm::vec3(0.f), &material0, &texture0, &texture1, meshes));
 
-    models.push_back(new Model(glm::vec3(-2.f, 0.f, -1.f), &material1, &texture1, &texture2, meshes));
+    //models.push_back(new Model(glm::vec3(-2.f, 0.f, -1.f), &material1, &texture1, &texture2, mesh_test));
 
-    models.push_back(new Model(glm::vec3(0.f, 1.f, 0.f), &material1, &texture0, &texture2, meshes));
+    //models.push_back(new Model(glm::vec3(0.f, 1.f, 0.f), &material1, &texture0, &texture2, meshes));
 
     // Init model with different mesh
-    models.push_back(new Model(glm::vec3(-0.5f, 0.f, 0.f), glm::vec3(0.005), &material0, &texture0, &texture1, "teapot_convert.obj", location, color_location, loc_texcoords, normal_location));
+    models.push_back(new Model(glm::vec3(0.4f, -0.1f, 0.5f), glm::vec3(0.001f), &material0, &texture0, &texture1, "Deer.obj", location, color_location, loc_texcoords, normal_location));
+
+    models.push_back(new Model(glm::vec3(-1.3f, 0.f, -0.5f), glm::vec3(0.5f), &material1, &texture1, &texture2, "cube_convert.obj", location, color_location, loc_texcoords, normal_location));
+    models[models.size() - 1]->rotate(glm::vec3(0.f, 0.f, 180.f));
+
+    models.push_back(new Model(glm::vec3(0.f, -0.2f, 0.f), glm::vec3(0.005f), &material1, &texture0, &texture2, "teapot_convert.obj", location, color_location, loc_texcoords, normal_location));
 
     // destruction because copied in Models
     for (auto*& i : meshes)
@@ -247,8 +278,7 @@ void Initialize()
         farPlane
     );
 
-    glm::vec3 lightPos0(0.f, 0.f, 1.f);
-    glm::vec3 lightPos1(-2.f, 1.f, 0.f);
+    glm::vec3 lightPos0(-0.5f, 0.1f, 1.f);
 
     glUseProgram(program);
 
@@ -259,7 +289,6 @@ void Initialize()
 
     //envoi de lumiere
     glUniform3fv(glGetUniformLocation(program, "lightPos"), 1, glm::value_ptr(lightPos0));
-    glUniform3fv(glGetUniformLocation(program, "secondLightPos"), 1, glm::value_ptr(lightPos1));
 
     glUseProgram(0);
 
@@ -287,6 +316,7 @@ void Render(GLFWwindow* window)
     glClear(GL_COLOR_BUFFER_BIT);
 
     auto basicProgram = g_BasicShader.GetProgram();
+    auto phongProgram = g_PhongShader.GetProgram();
     glUseProgram(basicProgram);
 
     const uint32_t stride = sizeof(Vertex);
@@ -325,6 +355,14 @@ void Render(GLFWwindow* window)
         i->render(basicProgram);
     }
 
+    /*
+    glUseProgram(basicProgram);
+    models[0]->render(basicProgram);
+    glUseProgram(phongProgram);
+    models[1]->render(phongProgram);
+    glUseProgram(basicProgram);
+    models[2]->render(basicProgram);
+    */
     // fin du render, retour a l'etat initial
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -375,8 +413,8 @@ int main(void)
         camera.updateInput(dt, -1, mouseOffsetX, mouseOffsetY);
 
         models[0]->rotate(glm::vec3(0.f, 0.1f, 0.f));
-        models[1]->rotate(glm::vec3(0.f, 0.5f, 0.f));
-        models[2]->rotate(glm::vec3(0.f, 1.f, 0.f));
+        models[1]->rotate(glm::vec3(0.f, 0.2f, 0.f));
+        models[2]->rotate(glm::vec3(0.f, 0.3f, 0.f));
 
 
         // Show mouse value in real time in console

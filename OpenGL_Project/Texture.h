@@ -10,6 +10,9 @@ private:
     unsigned int type;
     GLint textureUnit;
 
+    bool forceSRGB = true;
+    GLenum internalFormat = forceSRGB ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+
 
 public:
     Texture()
@@ -33,7 +36,7 @@ public:
             glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-            glTexImage2D(type, 0, GL_RGBA8, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+            glTexImage2D(type, 0, internalFormat, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
             glGenerateMipmap(type);
             stbi_image_free(image);
         }
@@ -91,7 +94,7 @@ public:
             glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-            glTexImage2D(type, 0, GL_RGBA8, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+            glTexImage2D(type, 0, internalFormat, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
             glGenerateMipmap(type);
             stbi_image_free(image);
         }
@@ -124,7 +127,7 @@ public:
             glTexParameteri(this->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(this->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-            glTexImage2D(this->type, 0, GL_RGBA8, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+            glTexImage2D(this->type, 0, internalFormat, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
             glGenerateMipmap(this->type);
             stbi_image_free(image);
         }

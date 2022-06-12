@@ -42,6 +42,22 @@ public:
 		}
 	}
 
+	Model(glm::vec3 Position, glm::vec3 scale, Material* material, Texture* overrideTexDiff, Texture* overrideTexSpec, Mesh mesh)
+	{
+		this->position = Position;
+		this->material = material;
+		this->overrideTextureDiffuse = overrideTexDiff;
+		this->overrideTextureSpecular = overrideTexSpec;
+
+		this->meshes.push_back(&mesh);
+
+		for (auto& i : this->meshes)
+		{
+			i->move(this->position);
+			i->setOrigin(this->position);
+		}
+	}
+
 	Model(glm::vec3 Position, glm::vec3 scale, Material* material, Texture* overrideTexDiff, Texture* overrideTexSpec, const char* obj_file,
 		int position,
 		int color,

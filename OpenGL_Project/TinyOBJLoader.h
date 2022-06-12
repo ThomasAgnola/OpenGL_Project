@@ -11,6 +11,7 @@ static std::vector<Vertex> loadOBJfromlib(const char* filename)
 
 	// Vertex array
 	std::vector<Vertex> vertices;
+	Material material;
 
 	glm::vec3 temp_vec3;
 	glm::vec3 temp_vec3_2;
@@ -83,7 +84,7 @@ static std::vector<Vertex> loadOBJfromlib(const char* filename)
 			shapes[s].mesh.material_ids[f];
 		}
 	}
-
+	Object gameobject = { vertices };
 	return vertices;
 
 }
