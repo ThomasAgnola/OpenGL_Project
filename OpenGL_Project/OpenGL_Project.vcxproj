@@ -132,6 +132,7 @@
   <ItemGroup>
     <ClCompile Include="..\libs\common\GLShader.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="tiny_obj_loader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\libs\common\GLShader.h" />
@@ -143,6 +144,8 @@
     <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="Primitives.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="TinyOBJLoader.h" />
+    <ClInclude Include="tiny_obj_loader.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>

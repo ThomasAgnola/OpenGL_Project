@@ -29,3 +29,5 @@
 #include "Camera.h"
 #include "Model.h"
 #include "OBJLoader.h"
+#include "TinyOBJLoader.h"
+#include "tiny_obj_loader.h"

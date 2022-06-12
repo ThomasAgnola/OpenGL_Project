@@ -1,6 +1,7 @@
 #include "libs.h"
 #include "GLShader.h"
 #include "Camera.h"
+#include "tiny_obj_loader.h"
 
 //Window variables
 GLFWwindow* window;
@@ -199,7 +200,9 @@ void Initialize()
 
     // Load obj file via a function to a Vertex
     std::vector<Vertex> temp;
-    temp = loadOBJ("Deer.obj");
+    temp = loadOBJfromlib("Deer.obj");
+    //temp = loadOBJ("Deer.obj");
+
 
     // Make meshes locally 
     std::vector<Mesh*> meshes;
