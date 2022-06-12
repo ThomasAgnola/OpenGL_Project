@@ -28,13 +28,13 @@ GLShader g_BasicShader;
 // Texture
 Texture texture0;
 Texture texture1;
+Texture texture2;
 // Material
 Material material0;
 Material material1;
-// Mesh
-Mesh mesh;
 
 // Model
+std::vector<Model*> models;
 //Model model;
 
 GLuint VBO;
@@ -182,25 +182,39 @@ void Initialize()
 
     int normal_location = glGetAttribLocation(program, "a_normal");
 
-    // Model
+    // Make meshes locally 
+    std::vector<Mesh*> meshes;
 
     //Can change figure by primitive
     //Triangle triangle = Triangle();
     Pyramid pyramid = Pyramid();
+    Quad quad = Quad();
     //Quad quad = Quad();
-    mesh.loadMesh(&pyramid,
-        location, color_location, loc_texcoords, normal_location, 
-        glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f));
+    meshes.push_back(new Mesh(&pyramid,
+        location, color_location, loc_texcoords, normal_location,
+        glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
 
-    // Texture init done globally -> to be usable in the render
+    // Texture init done globally -> to be usable in the render if necessary
     // Texture 0 // Load image
     texture0.loadImage("Sunflower_from_Silesia2.jpg", GL_TEXTURE_2D, 0);
 
     // Texture 1 // Load image
     texture1.loadImage("Minions.jpg", GL_TEXTURE_2D, 1);
 
+    texture2.loadImage("glass-textures.png", GL_TEXTURE_2D, 0);
+
     // Material 0
     material0.loadMaterial(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(1.f), texture0.getTextureUnit(), texture1.getTextureUnit());
+
+    material1.loadMaterial(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(1.f), texture1.getTextureUnit(), texture2.getTextureUnit());
+
+    // Init Meshes
+    models.push_back(new Model(glm::vec3(0.f), &material0, &texture0, &texture1, meshes));
+
+    models.push_back(new Model(glm::vec3(-2.f, 0.f, -1.f), &material1, &texture1, &texture2, meshes));
+
+    for (auto*& i : meshes)
+        delete i;
     
     // Init Position of Camera 
     ViewMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraFront, worldUp);
@@ -212,15 +226,7 @@ void Initialize()
         nearPlane,
         farPlane
     );
-    /*
-    model.loadModel(
-        glm::vec3(0.f),
-        &material0,
-        texture0.getTextureUnit(),
-        texture1.getTextureUnit(),
-        mesh
-    );
-    */
+
     glm::vec3 lightPos0(0.f, 0.f, 1.f);
 
     glUseProgram(program);
@@ -290,14 +296,12 @@ void Render(GLFWwindow* window)
     glUniformMatrix4fv(glGetUniformLocation(basicProgram, "ProjectionMatrix"), 1, GL_FALSE, glm::value_ptr(ProjectionMatrix));
 
 
-    // Activating Texture
-    texture0.bind();
-
-    texture1.bind();
-
-    material0.sendToShader(basicProgram);
-
-    mesh.render(basicProgram);
+    // Render models
+    for (auto& i : models)
+    {
+        glUseProgram(basicProgram);
+        i->render(basicProgram);
+    }
 
     // fin du render, retour a l'etat initial
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -348,7 +352,8 @@ int main(void)
         updateMouseInput();
         camera.updateInput(dt, -1, mouseOffsetX, mouseOffsetY);
 
-        mesh.rotate(glm::vec3(0.f, 0.1f, 0.f));
+        models[0]->rotate(glm::vec3(0.f, 0.1f, 0.f));
+        models[1]->rotate(glm::vec3(0.f, 0.5f, 0.f));
 
         // Show mouse value in real time in console
         //std::cout << "DT : " << dt << "\n" << " Mouse OffsetX : " << mouseOffsetX << " Mouse OffsetY : " << mouseOffsetY << "\n";
@@ -371,6 +376,8 @@ int main(void)
     // fin du programme
     glfwTerminate();
 
+    for (auto*& i : models)
+        delete i;
 
     return 0;
 }
