@@ -66,9 +66,9 @@ private:
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
-	void updateUniforms(GLuint* program)
+	void updateUniforms(GLuint& program)
 	{
-		glUniformMatrix4fv(glGetUniformLocation(*program, "ModelMatrix"), 1, GL_FALSE, glm::value_ptr(this->ModelMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(program, "ModelMatrix"), 1, GL_FALSE, glm::value_ptr(this->ModelMatrix));
 	}
 
 	void updateModelMatrix()
@@ -183,71 +183,6 @@ public:
 
 	}
 
-	void loadMesh(
-		Vertex* vertexArray,
-		const unsigned& nbrOfVertices, 
-		GLuint* indexArray, 
-		const unsigned& nbrOfindices, 
-		int position,
-		int color,
-		int tex_coords,
-		int normal,
-		glm::vec3 Position = glm::vec3(0.f),
-		glm::vec3 Rotation = glm::vec3(0.f),
-		glm::vec3 Scale = glm::vec3(1.f)
-		)
-	{
-		this->Position = Position;
-		this->Rotation = Rotation;
-		this->Scale = Scale;
-
-		this->position_location = position;
-		this->color_location = color;
-		this->tex_coord = tex_coords;
-		this->normal_location = normal;
-
-		this->nbrOfVertices = nbrOfVertices;
-		this->nbrOfIndices = nbrOfIndices;
-		this->vertexArray = new Vertex[this->nbrOfVertices];
-		for (size_t i = 0; i < nbrOfVertices; i++)
-		{
-			this->vertexArray[i] = vertexArray[i];
-		}
-
-		this->indexArray = new GLuint[this->nbrOfIndices];
-		for (size_t i = 0; i < nbrOfVertices; i++)
-		{
-			this->indexArray[i] = indexArray[i];
-		}
-
-		this->initVAO();
-		this->updateModelMatrix();
-	}
-
-	void loadMesh(
-		Primitive* primitive,
-		int position,
-		int color,
-		int tex_coords,
-		int normal,
-		glm::vec3 Position = glm::vec3(0.f),
-		glm::vec3 Rotation = glm::vec3(0.f),
-		glm::vec3 Scale = glm::vec3(1.f)
-		)
-	{
-		this->Position = Position;
-		this->Rotation = Rotation;
-		this->Scale = Scale;
-
-		this->position_location = position;
-		this->color_location = color;
-		this->tex_coord = tex_coords;
-		this->normal_location = normal;
-
-		this->initVAO();
-		this->updateModelMatrix();
-	}
-
 	~Mesh()
 	{
 		glDeleteBuffers(1, &this->VBO);
@@ -271,12 +206,10 @@ public:
 		this->Position = position;
 	}
 
-	// Modifiers
 	void setOrigin(const glm::vec3 Origin)
 	{
 		this->Origin = Origin;
 	}
-
 
 	void setRotation(const glm::vec3 rotation)
 	{
@@ -314,13 +247,16 @@ public:
 	{
 		// update uniforms
 		this->updateModelMatrix();
-		this->updateUniforms(&program);
+		this->updateUniforms(program);
 
 		glUseProgram(program);
 
 		// Bind VAO
 		glBindVertexArray(this->VAO);
 
+		// Bind VBO
+		glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+		
 		// Bind IBO
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->IBO);
 

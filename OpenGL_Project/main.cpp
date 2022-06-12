@@ -196,7 +196,7 @@ void Initialize()
 
     meshes.push_back(new Mesh(&quad,
         location, color_location, loc_texcoords, normal_location,
-        glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(1.f)));
+        glm::vec3(-1.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(0.f), glm::vec3(2.f)));
 
     // Texture init done globally -> to be usable in the render if necessary
     // Texture 0 // Load image

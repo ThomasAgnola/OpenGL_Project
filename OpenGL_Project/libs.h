@@ -3,6 +3,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 
 #include <iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
 #include <stb_image.h>
 
 #include <GL/glew.h>
@@ -14,6 +17,7 @@
 #include <vec3.hpp>
 #include <vec4.hpp>
 #include <mat4x4.hpp>
+#include <vector>
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
